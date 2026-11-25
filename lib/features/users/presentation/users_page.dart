@@ -52,7 +52,7 @@ class _UsersPageState extends State<UsersPage> {
     appBar:AppBar(title:const Text('إدارة المستخدمين'),actions:[IconButton(onPressed:_load,icon:const Icon(Icons.refresh))]),
     floatingActionButton:FloatingActionButton.extended(onPressed:_add,icon:const Icon(Icons.person_add_alt_1),label:const Text('إضافة مستخدم')),
     body:_loading?const Center(child:CircularProgressIndicator()):_error!=null?Center(child:Text(_error!)):_users.isEmpty?const Center(child:Text('لا يوجد مستخدمون')):ListView.separated(padding:const EdgeInsets.all(12),itemCount:_users.length,separatorBuilder:(_,__)=>const SizedBox(height:8),itemBuilder:(ctx,i){
-      final u=_users[i];return Card(child:ListTile(leading:CircleAvatar(child:Icon(u.isActive?Icons.person:Icons.person_off)),title:Text(u.displayName,style:const TextStyle(fontWeight:FontWeight.bold)),subtitle:Text('@${u.username} • ${_role(u.role)} • ${u.isActive?'نشط':'موقوف'}'),trailing:Switch(value:u.isActive,onChanged:(_)=>_toggle(u)));
+      final u=_users[i];return Card(child:ListTile(leading:CircleAvatar(child:Icon(u.isActive?Icons.person:Icons.person_off)),title:Text(u.displayName,style:const TextStyle(fontWeight:FontWeight.bold)),subtitle:Text('@${u.username} • ${_role(u.role)} • ${u.isActive?'نشط':'موقوف'}'),trailing:Switch(value:u.isActive,onChanged:(_)=>_toggle(u))));
     })),
   ));
 }
