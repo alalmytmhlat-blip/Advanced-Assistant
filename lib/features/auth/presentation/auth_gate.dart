@@ -1,3 +1,4 @@
+// ignore_for_file: deprecated_member_use
 import 'package:flutter/material.dart';
 import 'package:sqflite/sqflite.dart';
 
@@ -156,7 +157,9 @@ class _AuthPageState extends State<AuthPage> {
   }
 
   String _messageFor(Object error) {
-    if (error is AuthException) return error.message;
+    if (error is AuthException) {
+      return error.message;
+    }
     return 'تعذر إكمال العملية. تحقق من البيانات وحاول مرة أخرى.';
   }
 
