@@ -8,17 +8,18 @@ import 'package:sqflite/sqflite.dart';
 
 import '../../../core/auth/app_permission.dart';
 import '../../../core/auth/authorization_service.dart';
+import '../../../core/auth/auth_service.dart';
 import '../../../core/database/database_provider.dart';
 import '../../../core/database/database_schema.dart';
 
 class BackupService {
-  BackupService(this.provider, this.authorization);
+  BackupService(this.provider, this.authService);
   final DatabaseProvider provider;
-  final AuthorizationService authorization;
+  final AuthService authService;
 
   Future<File> createBackupFile() async {
-    await authorization.requirePermission(AppPermission.settingsManage);
     final db = await provider.database;
+    await AuthorizationService(db, authService).requirePermission(AppPermission.settingsManage);
     final integrity = await db.rawQuery('PRAGMA integrity_check');
     if (integrity.isEmpty || integrity.first.values.first != 'ok') {
       throw StateError('قاعدة البيانات لا تجتاز فحص السلامة');
@@ -50,7 +51,8 @@ class BackupService {
   }
 
   Future<void> restoreBackup(Uint8List zippedBytes) async {
-    await authorization.requirePermission(AppPermission.settingsManage);
+    final currentDb = await provider.database;
+    await AuthorizationService(currentDb, authService).requirePermission(AppPermission.settingsManage);
     final archive = ZipDecoder().decodeBytes(zippedBytes);
     final dbEntry = archive.findFile('database.sqlite');
     final manifestEntry = archive.findFile('manifest.json');

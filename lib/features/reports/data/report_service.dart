@@ -2,6 +2,8 @@
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 import 'dart:io';
+import 'dart:convert';
+import 'package:flutter/painting.dart';
 import 'package:csv/csv.dart';
 import 'package:cross_file/cross_file.dart';
 import 'package:path_provider/path_provider.dart';
@@ -69,7 +71,7 @@ class ReportService {
   Future<void> shareCsv(ReportData report) async {
     final csv = const ListToCsvConverter(fieldDelimiter: ',', eol: '\r\n')
         .convert([report.headers, ...report.rows]);
-    final bytes = Uint8List.fromList([0xEF, 0xBB, 0xBF, ...csv.codeUnits]);
+    final bytes = Uint8List.fromList([0xEF, 0xBB, 0xBF, ...utf8.encode(csv)]);
     final dir = await getTemporaryDirectory();
     final file = File('${dir.path}/${_safeName(report.title)}.csv');
     await file.writeAsBytes(bytes, flush: true);
@@ -107,9 +109,9 @@ class ReportService {
     final recorder = ui.PictureRecorder();
     final canvas = ui.Canvas(recorder);
     canvas.drawColor(const ui.Color(0xFFFFFFFF), ui.BlendMode.src);
-    final titlePainter = ui.TextPainter(
-      text: ui.TextSpan(text: title, style: const ui.TextStyle(fontSize: 42, fontWeight: ui.FontWeight.bold, color: ui.Color(0xFF123A5A))),
-      textDirection: ui.TextDirection.rtl, textAlign: ui.TextAlign.right,
+    final titlePainter = TextPainter(
+      text: TextSpan(text: title, style: const TextStyle(fontSize: 42, fontWeight: FontWeight.bold, color: ui.Color(0xFF123A5A))),
+      textDirection: TextDirection.rtl, textAlign: TextAlign.right,
     )..layout(maxWidth: 1120);
     titlePainter.paint(canvas, const ui.Offset(60, 60));
     final subtitle = ui.TextPainter(
