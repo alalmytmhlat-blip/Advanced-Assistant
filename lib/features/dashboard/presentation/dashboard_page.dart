@@ -9,12 +9,16 @@ import '../../customers/presentation/customers_page.dart';
 import '../../reminders/presentation/reminders_page.dart';
 import '../../inventory/presentation/inventory_page.dart';
 import '../../users/presentation/users_page.dart';
+import '../../reports/presentation/reports_page.dart';
+import '../../backup/presentation/backup_page.dart';
+import '../../../core/database/database_provider.dart';
 
 class DashboardPage extends StatefulWidget {
-  const DashboardPage({super.key, required this.onLogout, required this.database, required this.authService});
+  const DashboardPage({super.key, required this.onLogout, required this.database, required this.authService, required this.databaseProvider});
   final VoidCallback onLogout;
   final Database database;
   final AuthService authService;
+  final DatabaseProvider databaseProvider;
   @override
   State<DashboardPage> createState() => _DashboardPageState();
 }
@@ -60,6 +64,8 @@ class _DashboardPageState extends State<DashboardPage> {
           _module(context, Icons.notifications_active_outlined, 'المتابعات والتذكيرات', 'مواعيد العملاء والمهام والتنبيهات المحلية', () => RemindersPage(database: widget.database, authService: widget.authService)),
           _module(context, Icons.inventory_2_outlined, 'إدارة المخزون', 'الأصناف والكميات والفئات وحدود التنبيه', () => InventoryPage(database: widget.database, authService: widget.authService)),
           _module(context, Icons.manage_accounts_outlined, 'إدارة المستخدمين', 'إنشاء حسابات الموظفين وإيقافها وتفعيلها', () => UsersPage(database: widget.database, authService: widget.authService)),
+          _module(context, Icons.assessment_outlined, 'التقارير والتصدير', 'تقارير العملاء والمتابعات والمخزون بصيغتي PDF وCSV', () => ReportsPage(database: widget.database, authService: widget.authService)),
+          _module(context, Icons.backup_outlined, 'النسخ الاحتياطي', 'إنشاء نسخة آمنة أو استعادة نسخة سابقة', () => BackupPage(provider: widget.databaseProvider, authService: widget.authService, onRestored: widget.onLogout)),
         ]),
       ),
     ),

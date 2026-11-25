@@ -89,7 +89,7 @@ class _AuthGateState extends State<AuthGate> {
       );
     }
     if (_user != null) {
-      return DashboardPage(onLogout: _logout, database: _database!, authService: _auth!);
+      return DashboardPage(onLogout: _logout, database: _database!, authService: _auth!, databaseProvider: widget.databaseProvider);
     }
     return AuthPage(
       auth: _auth!,
