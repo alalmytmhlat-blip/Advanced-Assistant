@@ -248,7 +248,9 @@ class _AuthPageState extends State<AuthPage> {
                               ),
                             ),
                             validator: (value) {
-                              if (value == null || value.isEmpty) return 'أدخل كلمة المرور';
+                              if (value == null || value.isEmpty) {
+                                return 'أدخل كلمة المرور';
+                              }
                               if (widget.needsSetup && value.length < 10) {
                                 return 'كلمة المرور يجب ألا تقل عن 10 أحرف';
                               }
