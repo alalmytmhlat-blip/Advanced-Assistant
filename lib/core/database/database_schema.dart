@@ -2,7 +2,7 @@
 class DatabaseSchema {
   DatabaseSchema._();
 
-  static const int version = 1;
+  static const int version = 2;
 
   static const List<String> createStatements = [
     '''
@@ -145,6 +145,7 @@ class DatabaseSchema {
       created_at TEXT NOT NULL
     )
     ''',
+    ...migrationV2Statements,
     'CREATE INDEX idx_customers_name ON customers(name COLLATE NOCASE)',
     'CREATE INDEX idx_customers_phone ON customers(phone)',
     'CREATE INDEX idx_customers_archived ON customers(is_archived)',
@@ -156,5 +157,31 @@ class DatabaseSchema {
     'CREATE INDEX idx_balance_changes_customer ON customer_balance_changes(customer_id, changed_at)',
     'CREATE INDEX idx_audit_entity ON audit_events(entity_type, entity_id, occurred_at)',
     'CREATE INDEX idx_assistant_messages_conversation ON assistant_messages(conversation_id, created_at)',
+  ];
+
+  /// Additive migration: permissions are explicit grants and customer scopes
+  /// are allow-lists. Existing users retain their role; no data is discarded.
+  static const List<String> migrationV2Statements = [
+    '''
+    CREATE TABLE user_permissions (
+      id TEXT PRIMARY KEY NOT NULL,
+      user_id TEXT NOT NULL REFERENCES app_users(id) ON DELETE CASCADE,
+      permission TEXT NOT NULL,
+      granted_by TEXT REFERENCES app_users(id) ON DELETE SET NULL,
+      created_at TEXT NOT NULL,
+      UNIQUE(user_id, permission)
+    )
+    ''',
+    '''
+    CREATE TABLE user_customer_scopes (
+      user_id TEXT NOT NULL REFERENCES app_users(id) ON DELETE CASCADE,
+      customer_id TEXT NOT NULL REFERENCES customers(id) ON DELETE CASCADE,
+      assigned_by TEXT REFERENCES app_users(id) ON DELETE SET NULL,
+      created_at TEXT NOT NULL,
+      PRIMARY KEY(user_id, customer_id)
+    )
+    ''',
+    'CREATE INDEX idx_user_permissions_user ON user_permissions(user_id)',
+    'CREATE INDEX idx_user_customer_scopes_customer ON user_customer_scopes(customer_id)',
   ];
 }

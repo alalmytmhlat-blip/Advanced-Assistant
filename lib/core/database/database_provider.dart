@@ -36,11 +36,17 @@ class DatabaseProvider {
         await batch.commit(noResult: true);
       },
       onUpgrade: (db, oldVersion, newVersion) async {
-        // Add a new, explicit migration block for every future schema version.
-        // Never drop user data as a generic upgrade strategy.
+        // Migrations are additive and versioned. Never delete user data.
         if (oldVersion < 1) {
           final batch = db.batch();
           for (final statement in DatabaseSchema.createStatements) {
+            batch.execute(statement);
+          }
+          await batch.commit(noResult: true);
+        }
+        if (oldVersion < 2) {
+          final batch = db.batch();
+          for (final statement in DatabaseSchema.migrationV2Statements) {
             batch.execute(statement);
           }
           await batch.commit(noResult: true);
