@@ -172,31 +172,23 @@ class _ExactDecimal {
 
     final parts = unsigned.split('.');
     final whole = parts[0].isEmpty ? '0' : parts[0];
-    var fraction = parts.length == 2 ? parts[1] : '';
-    final digits = (whole + fraction).replaceFirst(RegExp(r'^0+(?=\d)'), '');
-    var coefficient = BigInt.parse(digits.isEmpty ? '0' : digits);
-    while (fraction.isNotEmpty && fraction.endsWith('0')) {
-      fraction = fraction.substring(0, fraction.length - 1);
-    }
-    if (fraction.isEmpty) {
-      if (coefficient == BigInt.zero) return '0';
-      return '${negative ? '-' : ''}${coefficient.toString()}';
-    }
+    final fraction = parts.length == 2 ? parts[1] : '';
+    var coefficient = BigInt.parse(whole + fraction);
+    var scale = fraction.length;
 
-    // Rebuild the integer and fractional portions after removing redundant zeros.
-    final scale = parts.length == 2 ? parts[1].length : 0;
-    final rawDigits = (whole + (parts.length == 2 ? parts[1] : ''));
-    coefficient = BigInt.parse(rawDigits.isEmpty ? '0' : rawDigits);
-    var normalizedScale = scale;
-    while (normalizedScale > 0 && coefficient % BigInt.from(10) == BigInt.zero) {
+    while (scale > 0 && coefficient % BigInt.from(10) == BigInt.zero) {
       coefficient ~/= BigInt.from(10);
-      normalizedScale--;
+      scale--;
     }
     if (coefficient == BigInt.zero) return '0';
-    final digitsText = coefficient.toString().padLeft(normalizedScale + 1, '0');
-    final splitAt = digitsText.length - normalizedScale;
-    final integerPart = digitsText.substring(0, splitAt);
-    final fractionalPart = digitsText.substring(splitAt);
+
+    if (scale == 0) {
+      return '${negative ? '-' : ''}${coefficient.toString()}';
+    }
+    final digits = coefficient.toString().padLeft(scale + 1, '0');
+    final splitAt = digits.length - scale;
+    final integerPart = digits.substring(0, splitAt);
+    final fractionalPart = digits.substring(splitAt);
     return '${negative ? '-' : ''}$integerPart.$fractionalPart';
   }
 }
