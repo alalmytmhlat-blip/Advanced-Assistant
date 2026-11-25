@@ -13,11 +13,10 @@ class CustomerRepository {
   CustomerRepository(
     this.database,
     this.authorization, {
-    AuthorizationPolicy policy = const AuthorizationPolicy(),
+    this.policy = const AuthorizationPolicy(),
     DateTime Function()? clock,
     Random? random,
-  }) : policy = policy,
-       _clock = clock ?? DateTime.now,
+  }) : _clock = clock ?? DateTime.now,
        _random = random ?? Random.secure();
 
   final Database database;
