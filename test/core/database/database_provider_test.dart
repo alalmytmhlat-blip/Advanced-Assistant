@@ -121,6 +121,19 @@ void main() {
         'created_at': '2025-01-01T00:00:00Z',
         'updated_at': '2025-01-01T00:00:00Z',
       });
+      if (oldVersion >= 2) {
+        await legacy.insert('user_permissions', {
+          'id': 'legacy-grant',
+          'user_id': 'legacy-manager',
+          'permission': 'customer.read',
+          'created_at': '2025-01-01T00:00:00Z',
+        });
+        await legacy.insert('user_customer_scopes', {
+          'user_id': 'legacy-manager',
+          'customer_id': 'legacy-customer',
+          'created_at': '2025-01-01T00:00:00Z',
+        });
+      }
       await legacy.close();
 
       final provider = DatabaseProvider(databasePath: path);
@@ -140,6 +153,21 @@ void main() {
       expect(userCount.single['n'], 1);
       expect(customerRows.single['current_balance'], '-87.50');
       expect(newTables, hasLength(2));
+      expect(await upgraded.getVersion(), DatabaseSchema.version);
+      if (oldVersion >= 2) {
+        final grants = await upgraded.query(
+          'user_permissions',
+          where: 'id = ?',
+          whereArgs: ['legacy-grant'],
+        );
+        final scopes = await upgraded.query(
+          'user_customer_scopes',
+          where: 'user_id = ? AND customer_id = ?',
+          whereArgs: ['legacy-manager', 'legacy-customer'],
+        );
+        expect(grants.single['permission'], 'customer.read');
+        expect(scopes, hasLength(1));
+      }
 
       await provider.close();
       await directory.delete(recursive: true);
