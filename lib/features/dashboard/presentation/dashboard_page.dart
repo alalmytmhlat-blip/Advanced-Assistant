@@ -2,16 +2,25 @@
 import 'package:flutter/material.dart';
 
 class DashboardPage extends StatelessWidget {
-  const DashboardPage({super.key});
+  const DashboardPage({super.key, required this.onLogout});
+
+  final VoidCallback onLogout;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'المساعد الذكي PRO',
+          'المساعد الذكي',
           style: TextStyle(fontWeight: FontWeight.w700),
         ),
+        actions: [
+          IconButton(
+            tooltip: 'تسجيل الخروج',
+            onPressed: onLogout,
+            icon: const Icon(Icons.logout),
+          ),
+        ],
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
@@ -22,11 +31,10 @@ class DashboardPage extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('مرحبًا بك',
-                      style: Theme.of(context).textTheme.headlineSmall),
+                  Text('مرحبًا بك', style: Theme.of(context).textTheme.headlineSmall),
                   const SizedBox(height: 8),
                   const Text(
-                    'تم تأسيس المشروع. ستظهر هنا مؤشرات العملاء والمخزون '
+                    'تم تسجيل الدخول بنجاح. ستظهر هنا مؤشرات العملاء والمخزون '
                     'والمتابعات بعد تنفيذ الأنظمة وربطها بقاعدة البيانات.',
                   ),
                 ],

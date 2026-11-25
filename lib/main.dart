@@ -2,8 +2,9 @@
 import 'package:flutter/material.dart';
 
 import 'app/app.dart';
+import 'core/database/database_provider.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(const AdvancedAssistantApp());
+  runApp(AdvancedAssistantApp(databaseProvider: DatabaseProvider()));
 }
