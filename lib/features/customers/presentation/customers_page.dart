@@ -83,7 +83,7 @@ class _CustomersPageState extends State<CustomersPage> {
                 title: Text(c.name, style: const TextStyle(fontWeight: FontWeight.bold)),
                 subtitle: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   if (c.phone != null) Text(c.phone!),
-                  if (balance) ...<Widget>[Text('الرصيد: ${c.currentBalance}')],
+                  ...(balance ? [Text('الرصيد: ${c.currentBalance}')] : const <Widget>[]),
                 ]),
                 onTap: update ? () => edit(c) : null,
                 trailing: update || remove ? PopupMenuButton<String>(
