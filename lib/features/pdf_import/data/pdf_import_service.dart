@@ -65,9 +65,9 @@ class PdfImportService {
       if (extracted.trim().isEmpty) {
         throw const FormatException('لم أجد نصًا قابلًا للاستخراج. قد يكون الملف صورة ممسوحة؛ OCR غير مفعل في هذه المرحلة.');
       }
-      return kind == PdfImportKind.customers
+      return await (kind == PdfImportKind.customers
           ? _prepareCustomers(extracted, document.pages.length)
-          : _prepareInventory(extracted, document.pages.length);
+          : _prepareInventory(extracted, document.pages.length));
     } finally {
       await document.dispose();
     }

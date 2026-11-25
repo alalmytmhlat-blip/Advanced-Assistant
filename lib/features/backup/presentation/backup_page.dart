@@ -1,11 +1,10 @@
+// ignore_for_file: deprecated_member_use, curly_braces_in_flow_control_structures
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:cross_file/cross_file.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../../core/auth/auth_service.dart';
-import '../../../core/auth/authorization_service.dart';
 import '../../../core/database/database_provider.dart';
 import '../data/backup_service.dart';
 

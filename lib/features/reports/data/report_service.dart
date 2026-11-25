@@ -120,26 +120,26 @@ class ReportService {
     const height = 1754;
     final recorder = ui.PictureRecorder();
     final canvas = ui.Canvas(recorder);
-    canvas.drawColor(const ui.Color(0xFFFFFFFF), ui.BlendMode.src);
+    canvas.drawColor(const Color(0xFFFFFFFF), ui.BlendMode.src);
     final titlePainter = TextPainter(
-      text: TextSpan(text: title, style: const TextStyle(fontSize: 42, fontWeight: FontWeight.bold, color: ui.Color(0xFF123A5A))),
+      text: TextSpan(text: title, style: const TextStyle(fontSize: 42, fontWeight: FontWeight.bold, color: Color(0xFF123A5A))),
       textDirection: TextDirection.rtl, textAlign: TextAlign.right,
     )..layout(maxWidth: 1120);
     titlePainter.paint(canvas, const ui.Offset(60, 60));
-    final subtitle = ui.TextPainter(
-      text: ui.TextSpan(text: 'تاريخ التقرير: ${DateTime.now().toLocal()}   •   صفحة $page من $pages', style: const ui.TextStyle(fontSize: 22, color: ui.Color(0xFF555555))),
-      textDirection: ui.TextDirection.rtl, textAlign: ui.TextAlign.right,
+    final subtitle = TextPainter(
+      text: TextSpan(text: 'تاريخ التقرير: ${DateTime.now().toLocal()}   •   صفحة $page من $pages', style: const TextStyle(fontSize: 22, color: Color(0xFF555555))),
+      textDirection: TextDirection.rtl, textAlign: TextAlign.right,
     )..layout(maxWidth: 1120);
     subtitle.paint(canvas, const ui.Offset(60, 130));
     var y = 210.0;
     for (var i = 0; i < lines.length; i++) {
-      final painter = ui.TextPainter(
-        text: ui.TextSpan(text: lines[i], style: ui.TextStyle(fontSize: i == 0 ? 23 : 20, fontWeight: i == 0 ? ui.FontWeight.bold : ui.FontWeight.normal, color: const ui.Color(0xFF202020))),
-        textDirection: ui.TextDirection.rtl, textAlign: ui.TextAlign.right, maxLines: 2, ellipsis: '…',
+      final painter = TextPainter(
+        text: TextSpan(text: lines[i], style: TextStyle(fontSize: i == 0 ? 23 : 20, fontWeight: i == 0 ? FontWeight.bold : FontWeight.normal, color: const Color(0xFF202020))),
+        textDirection: TextDirection.rtl, textAlign: TextAlign.right, maxLines: 2, ellipsis: '…',
       )..layout(maxWidth: 1120);
       painter.paint(canvas, ui.Offset(60, y));
       y += i == 0 ? 52 : 48;
-      canvas.drawLine(ui.Offset(60, y - 8), ui.Offset(width - 60, y - 8), ui.Paint()..color = const ui.Color(0xFFE1E7ED)..strokeWidth = 1);
+      canvas.drawLine(ui.Offset(60, y - 8), ui.Offset(width - 60, y - 8), ui.Paint()..color = const Color(0xFFE1E7ED)..strokeWidth = 1);
       if (y > height - 70) break;
     }
     final picture = recorder.endRecording();

@@ -1,3 +1,4 @@
+// ignore_for_file: curly_braces_in_flow_control_structures
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
@@ -40,7 +41,7 @@ class BackupService {
         ..addFile(ArchiveFile('database.sqlite', bytes.length, bytes))
         ..addFile(ArchiveFile('manifest.json', manifest.length, manifest));
       final zipped = ZipEncoder().encode(archive);
-      if (zipped == null || zipped.isEmpty) throw StateError('تعذر ضغط النسخة الاحتياطية');
+      if (zipped.isEmpty) throw StateError('تعذر ضغط النسخة الاحتياطية');
       final dir = await getApplicationDocumentsDirectory();
       final file = File('${dir.path}/assistant_backup_${DateTime.now().millisecondsSinceEpoch}.zip');
       await file.writeAsBytes(zipped, flush: true);

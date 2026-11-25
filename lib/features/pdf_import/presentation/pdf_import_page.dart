@@ -1,4 +1,4 @@
-// ignore_for_file: curly_braces_in_flow_control_structures
+// ignore_for_file: deprecated_member_use, curly_braces_in_flow_control_structures
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
