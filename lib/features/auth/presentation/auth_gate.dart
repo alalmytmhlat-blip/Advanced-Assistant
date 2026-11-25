@@ -18,6 +18,7 @@ class AuthGate extends StatefulWidget {
 
 class _AuthGateState extends State<AuthGate> {
   AuthService? _auth;
+  Database? _database;
   AuthenticatedUser? _user;
   bool _needsSetup = false;
   bool _loading = true;
@@ -37,6 +38,7 @@ class _AuthGateState extends State<AuthGate> {
       final hasUsers = await auth.hasAnyUser();
       if (!mounted) return;
       setState(() {
+        _database = db;
         _auth = auth;
         _user = user;
         _needsSetup = !hasUsers;
@@ -87,7 +89,7 @@ class _AuthGateState extends State<AuthGate> {
       );
     }
     if (_user != null) {
-      return DashboardPage(onLogout: _logout);
+      return DashboardPage(onLogout: _logout, database: _database!, authService: _auth!);
     }
     return AuthPage(
       auth: _auth!,
