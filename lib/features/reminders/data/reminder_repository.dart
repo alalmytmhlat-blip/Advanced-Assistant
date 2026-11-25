@@ -99,6 +99,46 @@ class ReminderRepository {
     return (await list()).firstWhere((record) => record.id == id);
   }
 
+  Future<List<AssignableUser>> listAssignableUsers() async {
+    final context = await authorization.loadContext();
+    policy.requirePermission(context, AppPermission.followupAssign);
+    final rows = await database.query(
+      'app_users',
+      columns: ['id', 'display_name', 'role'],
+      where: 'is_active = 1',
+      orderBy: 'display_name COLLATE NOCASE',
+    );
+    return rows.map((row) => AssignableUser(
+      id: row['id']! as String,
+      displayName: row['display_name']! as String,
+      role: row['role']! as String,
+    )).toList(growable: false);
+  }
+
+  Future<void> assign({required String followupId, required String userId}) async {
+    final context = await authorization.loadContext();
+    policy.requirePermission(context, AppPermission.followupAssign);
+    final now = _clock().toUtc().toIso8601String();
+    await database.transaction((txn) async {
+      final followups = await txn.query('followups', where: 'id = ?', whereArgs: [followupId], limit: 1);
+      if (followups.isEmpty) throw const ReminderNotFoundException();
+      final before = followups.single;
+      final customerId = before['customer_id'] as String?;
+      if (customerId != null) policy.requireCustomerAccess(context, customerId);
+      final users = await txn.query('app_users', columns: ['id'], where: 'id = ? AND is_active = 1', whereArgs: [userId], limit: 1);
+      if (users.isEmpty) throw const ReminderValidationException('المستخدم غير موجود أو غير نشط');
+      if (before['assigned_to'] == userId) return;
+      await txn.update('followups', {'assigned_to': userId, 'updated_at': now}, where: 'id = ?', whereArgs: [followupId]);
+      await txn.insert('audit_events', {
+        'id': _newId(), 'actor_user_id': context.userId, 'entity_type': 'followup',
+        'entity_id': followupId, 'action': 'followup.assign',
+        'before_json': jsonEncode({'assigned_to': before['assigned_to']}),
+        'after_json': jsonEncode({'assigned_to': userId}),
+        'occurred_at': now,
+      });
+    });
+  }
+
   Future<void> updateStatus({required String id, required String status, String? outcome}) async {
     final context = await authorization.loadContext();
     policy.requirePermission(context, AppPermission.followupUpdate);
@@ -153,4 +193,11 @@ class ReminderNotFoundException implements Exception {
   const ReminderNotFoundException();
   @override
   String toString() => 'Reminder not found';
+}
+
+class AssignableUser {
+  const AssignableUser({required this.id, required this.displayName, required this.role});
+  final String id;
+  final String displayName;
+  final String role;
 }
