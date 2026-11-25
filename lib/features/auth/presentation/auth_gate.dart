@@ -62,9 +62,21 @@ class _AuthGateState extends State<AuthGate> {
   }
 
   Future<void> _logout() async {
-    await _auth?.logout();
+    try {
+      await _auth?.logout();
+    } catch (_) {
+      await FlutterSessionSecretStore().delete();
+    }
+    final db = await widget.databaseProvider.database;
+    final auth = AuthService(db, FlutterSessionSecretStore());
+    final hasUsers = await auth.hasAnyUser();
     if (!mounted) return;
-    setState(() => _user = null);
+    setState(() {
+      _database = db;
+      _auth = auth;
+      _user = null;
+      _needsSetup = !hasUsers;
+    });
   }
 
   @override

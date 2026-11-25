@@ -27,9 +27,7 @@ class BackupService {
     }
     await db.rawQuery('PRAGMA wal_checkpoint(FULL)');
     final path = await provider.resolvedPath;
-    await provider.close();
-    try {
-      final bytes = await File(path).readAsBytes();
+    final bytes = await File(path).readAsBytes();
       final checksum = sha256.convert(bytes).toString();
       final manifest = utf8.encode(jsonEncode({
         'format': 'advanced-assistant-backup',
@@ -46,9 +44,6 @@ class BackupService {
       final file = File('${dir.path}/assistant_backup_${DateTime.now().millisecondsSinceEpoch}.zip');
       await file.writeAsBytes(zipped, flush: true);
       return file;
-    } finally {
-      await provider.database;
-    }
   }
 
   Future<void> restoreBackup(Uint8List zippedBytes) async {
