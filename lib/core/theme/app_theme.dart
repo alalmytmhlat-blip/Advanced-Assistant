@@ -1,3 +1,4 @@
+// ignore_for_file: deprecated_member_use
 import 'package:flutter/material.dart';
 
 class AppTheme {
@@ -6,7 +7,10 @@ class AppTheme {
   static const Color brandBlue = Color(0xFF1261A0);
 
   static ThemeData get light {
-    final scheme = ColorScheme.fromSeed(seedColor: brandBlue, brightness: Brightness.light);
+    final scheme = ColorScheme.fromSeed(
+      seedColor: brandBlue,
+      brightness: Brightness.light,
+    );
     return ThemeData(
       useMaterial3: true,
       colorScheme: scheme,
@@ -31,7 +35,10 @@ class AppTheme {
 
   static ThemeData get dark => ThemeData(
         useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(seedColor: brandBlue, brightness: Brightness.dark),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: brandBlue,
+          brightness: Brightness.dark,
+        ),
         fontFamily: 'Cairo',
       );
 }

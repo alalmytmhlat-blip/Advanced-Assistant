@@ -1,3 +1,4 @@
+// ignore_for_file: deprecated_member_use
 import 'package:flutter/material.dart';
 
 class DashboardPage extends StatelessWidget {
@@ -7,7 +8,10 @@ class DashboardPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('المساعد الذكي PRO', style: TextStyle(fontWeight: FontWeight.w700)),
+        title: const Text(
+          'المساعد الذكي PRO',
+          style: TextStyle(fontWeight: FontWeight.w700),
+        ),
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
@@ -18,9 +22,13 @@ class DashboardPage extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('مرحبًا بك', style: Theme.of(context).textTheme.headlineSmall),
+                  Text('مرحبًا بك',
+                      style: Theme.of(context).textTheme.headlineSmall),
                   const SizedBox(height: 8),
-                  const Text('تم تأسيس المشروع. ستظهر هنا مؤشرات العملاء والمخزون والمتابعات بعد تنفيذ الأنظمة وربطها بقاعدة البيانات.'),
+                  const Text(
+                    'تم تأسيس المشروع. ستظهر هنا مؤشرات العملاء والمخزون '
+                    'والمتابعات بعد تنفيذ الأنظمة وربطها بقاعدة البيانات.',
+                  ),
                 ],
               ),
             ),
@@ -30,7 +38,9 @@ class DashboardPage extends StatelessWidget {
             child: ListTile(
               leading: Icon(Icons.psychology_alt_outlined),
               title: Text('محرك الذكاء الهجين'),
-              subtitle: Text('الوظائف المحلية والسحابية قيد التخطيط والتنفيذ وفق وثائق المشروع.'),
+              subtitle: Text(
+                'الوظائف المحلية والسحابية قيد التخطيط والتنفيذ وفق وثائق المشروع.',
+              ),
             ),
           ),
         ],
