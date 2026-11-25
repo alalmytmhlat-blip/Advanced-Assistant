@@ -82,15 +82,15 @@ class _CustomersPageState extends State<CustomersPage> {
                 leading: CircleAvatar(child: Text(c.name.characters.first)),
                 title: Text(c.name, style: const TextStyle(fontWeight: FontWeight.bold)),
                 subtitle: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  if (c.phone != null) Text(c.phone!),
+                  ...(c.phone != null ? <Widget>[Text(c.phone!)] : const <Widget>[]),
                   ...(balance ? [Text('الرصيد: ${c.currentBalance}')] : const <Widget>[]),
                 ]),
                 onTap: update ? () => edit(c) : null,
                 trailing: update || remove ? PopupMenuButton<String>(
                   onSelected: (v) { if (v == 'edit') { edit(c); } if (v == 'archive') { archive(c); } },
                   itemBuilder: (_) => [
-                    if (update) const PopupMenuItem(value: 'edit', child: Text('تعديل')),
-                    if (remove) const PopupMenuItem(value: 'archive', child: Text('أرشفة'))]) : null,
+                    ...(update ? <PopupMenuEntry<String>>[const PopupMenuItem(value: 'edit', child: Text('تعديل'))] : const <PopupMenuEntry<String>>[]),
+                    ...(remove ? <PopupMenuEntry<String>>[const PopupMenuItem(value: 'archive', child: Text('أرشفة'))] : const <PopupMenuEntry<String>>[])]) : null,
               ));
             }))),
       ]),
