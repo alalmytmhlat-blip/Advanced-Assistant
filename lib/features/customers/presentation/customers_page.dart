@@ -47,7 +47,11 @@ class _CustomersPageState extends State<CustomersPage> {
       if (customer == null) { await repo.create(draft); } else { await repo.update(customer.id, draft); }
       await load();
     } on Object catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString())),
+        );
+      }
     }
   }
   Future<void> archive(CustomerRecord c) async {
