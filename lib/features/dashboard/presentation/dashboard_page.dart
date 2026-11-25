@@ -1,4 +1,5 @@
 // ignore_for_file: deprecated_member_use, curly_braces_in_flow_control_structures
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:sqflite/sqflite.dart';
 import '../../../core/auth/auth_service.dart';
@@ -28,12 +29,23 @@ class _DashboardPageState extends State<DashboardPage> {
   late final DashboardMetricsRepository _metricsRepository;
   DashboardMetrics? _metrics;
   bool _loadingMetrics = true;
+  String _storeName = '';
   @override
   void initState() {
     super.initState();
     _metricsRepository = DashboardMetricsRepository(widget.database, AuthorizationService(widget.database, widget.authService));
     _loadMetrics();
+    _loadStoreProfile();
   }
+  Future<void> _loadStoreProfile() async {
+    try {
+      final rows = await widget.database.query('app_settings', where: "key = 'store_profile'", limit: 1);
+      if (rows.isEmpty) return;
+      final data = jsonDecode(rows.single['value_json']! as String) as Map<String, dynamic>;
+      if (mounted) setState(() => _storeName = (data['name'] as String? ?? '').trim());
+    } catch (_) {}
+  }
+
   Future<void> _loadMetrics() async {
     try {
       final result = await _metricsRepository.load();
@@ -46,7 +58,7 @@ class _DashboardPageState extends State<DashboardPage> {
   Widget build(BuildContext context) => Directionality(
     textDirection: TextDirection.rtl,
     child: Scaffold(
-      appBar: AppBar(title: const Text('المساعد الذكي', style: TextStyle(fontWeight: FontWeight.w700)), actions: [
+      appBar: AppBar(title: Text(_storeName.isEmpty ? 'المساعد الذكي' : _storeName, style: const TextStyle(fontWeight: FontWeight.w700)), actions: [
         IconButton(tooltip: 'تحديث المؤشرات', onPressed: _loadMetrics, icon: const Icon(Icons.refresh)),
         IconButton(tooltip: 'تسجيل الخروج', onPressed: widget.onLogout, icon: const Icon(Icons.logout)),
       ]),

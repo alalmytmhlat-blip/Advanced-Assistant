@@ -172,8 +172,7 @@ class PdfImportService {
         columns = line.split(RegExp(r'\s{2,}'));
       }
       columns = columns.map((v) => v.trim()).toList();
-      columns.removeWhere((v) => v.isEmpty);
-      if (columns.length < 2 || columns.first.length > 240) { ignored++; continue; }
+      if (columns.length < 2 || columns.first.isEmpty || columns.first.length > 240) { ignored++; continue; }
       rows.add(columns);
     }
     return (rows: rows, ignored: ignored);

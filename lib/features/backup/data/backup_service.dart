@@ -76,15 +76,24 @@ class BackupService {
     final targetPath = await provider.resolvedPath;
     await provider.close();
     final target = File(targetPath);
+    final replacement = File('$targetPath.restore.tmp');
+    File? safety;
     try {
+      await candidate.copy(replacement.path);
       if (await target.exists()) {
-        final safety = File('$targetPath.before_restore_${DateTime.now().millisecondsSinceEpoch}');
-        await target.copy(safety.path);
+        safety = File('$targetPath.before_restore_${DateTime.now().millisecondsSinceEpoch}');
+        await target.rename(safety.path);
       }
-      await candidate.copy(targetPath);
+      try {
+        await replacement.rename(targetPath);
+      } catch (_) {
+        if (safety != null && await safety.exists()) await safety.rename(targetPath);
+        rethrow;
+      }
     } finally {
       await provider.database;
       if (await candidate.exists()) await candidate.delete();
+      if (await replacement.exists()) await replacement.delete();
     }
   }
 }
