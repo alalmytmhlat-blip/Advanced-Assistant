@@ -14,7 +14,7 @@ void main() {
 
   test('rejects malformed and excessive work-factor encodings', () async {
     final hasher = PasswordHasher(iterations: 10000);
-    expect(await hasher.verify('password', 'pbkdf2-sha256-v1$99999999$aa$bb'), isFalse);
-    expect(await hasher.verify('password', 'unknown$10000$aa$bb'), isFalse);
+    expect(await hasher.verify('password', r'pbkdf2-sha256-v1$99999999$aa$bb'), isFalse);
+    expect(await hasher.verify('password', r'unknown$10000$aa$bb'), isFalse);
   });
 }
