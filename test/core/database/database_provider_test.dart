@@ -66,8 +66,8 @@ void main() {
     );
     expect(customer.single['current_balance'], '-1250.75');
 
-    expect(
-      () => db.insert('customer_notes', {
+    await expectLater(
+      db.insert('customer_notes', {
         'id': 'note-1',
         'customer_id': 'missing-customer',
         'body': 'يجب رفض السجل اليتيم',
