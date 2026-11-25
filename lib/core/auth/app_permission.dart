@@ -17,11 +17,12 @@ abstract final class AppPermission {
   static const reportsRead = 'reports.read';
   static const usersManage = 'users.manage';
   static const settingsManage = 'settings.manage';
+  static const assistantCloud = 'assistant.cloud';
 
   static const all = <String>{
     customerRead, customerCreate, customerUpdate, customerArchive,
     customerNotesCreate, contactRecord, balanceRead, balanceUpdate,
     followupRead, followupCreate, followupUpdate, followupAssign,
-    inventoryRead, inventoryManage, reportsRead, usersManage, settingsManage,
+    inventoryRead, inventoryManage, reportsRead, usersManage, settingsManage, assistantCloud,
   };
 }
