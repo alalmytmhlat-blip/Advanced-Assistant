@@ -12,6 +12,7 @@ import '../../users/presentation/users_page.dart';
 import '../../reports/presentation/reports_page.dart';
 import '../../backup/presentation/backup_page.dart';
 import '../../pdf_import/presentation/pdf_import_page.dart';
+import '../../settings/presentation/settings_page.dart';
 import '../../../core/database/database_provider.dart';
 
 class DashboardPage extends StatefulWidget {
@@ -68,6 +69,7 @@ class _DashboardPageState extends State<DashboardPage> {
           _module(context, Icons.assessment_outlined, 'التقارير والتصدير', 'تقارير العملاء والمتابعات والمخزون بصيغتي PDF وCSV', () => ReportsPage(database: widget.database, authService: widget.authService)),
           _module(context, Icons.backup_outlined, 'النسخ الاحتياطي', 'إنشاء نسخة آمنة أو استعادة نسخة سابقة', () => BackupPage(provider: widget.databaseProvider, authService: widget.authService, onRestored: widget.onLogout)),
           _module(context, Icons.picture_as_pdf_outlined, 'استيراد PDF', 'استيراد العملاء أو الأصناف بمعاينة قبل الحفظ', () => PdfImportPage(database: widget.database, authService: widget.authService)),
+          _module(context, Icons.settings_outlined, 'الإعدادات', 'بيانات النشاط ومزود الذكاء السحابي الاختياري', () => SettingsPage(database: widget.database, authService: widget.authService)),
         ]),
       ),
     ),

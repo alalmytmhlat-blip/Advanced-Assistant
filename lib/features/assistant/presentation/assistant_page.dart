@@ -4,6 +4,7 @@ import 'package:sqflite/sqflite.dart';
 import '../../../core/auth/auth_service.dart';
 import '../../../core/auth/authorization_service.dart';
 import '../data/local_assistant_service.dart';
+import '../data/cloud_ai_gateway.dart';
 
 class AssistantPage extends StatefulWidget {
   const AssistantPage({super.key, required this.database, required this.authService});
@@ -14,13 +15,16 @@ class AssistantPage extends StatefulWidget {
 }
 class _AssistantPageState extends State<AssistantPage> {
   late final LocalAssistantService _assistant;
+  late final CloudAiGateway _cloud;
   final _controller = TextEditingController();
   AssistantAnswer? _answer;
   bool _loading = false;
   @override
   void initState() {
     super.initState();
-    _assistant = LocalAssistantService(widget.database, AuthorizationService(widget.database, widget.authService));
+    final authz = AuthorizationService(widget.database, widget.authService);
+    _assistant = LocalAssistantService(widget.database, authz);
+    _cloud = CloudAiGateway(widget.database, authz);
   }
   @override
   void dispose() { _controller.dispose(); super.dispose(); }
@@ -34,6 +38,32 @@ class _AssistantPageState extends State<AssistantPage> {
       if (mounted) setState(() => _answer = answer);
     } catch (error) {
       if (mounted) setState(() => _answer = AssistantAnswer(title: 'تعذر تنفيذ الطلب', message: error.toString()));
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  Future<void> _askCloud() async {
+    final prompt = _controller.text.trim();
+    if (prompt.isEmpty || _loading) return;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('إرسال السؤال إلى الذكاء السحابي؟'),
+        content: const Text('سيتم إرسال نص السؤال الذي كتبته فقط إلى مزود API الذي ضبطه المدير. لن يرسل التطبيق قاعدة العملاء أو الأرصدة أو المخزون تلقائيًا.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('إلغاء')),
+          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('إرسال السؤال')),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    setState(() { _loading = true; _answer = null; });
+    try {
+      final response = await _cloud.ask(prompt);
+      if (mounted) setState(() => _answer = AssistantAnswer(title: 'إجابة الذكاء السحابي', message: response, source: 'مزود خارجي — نص السؤال فقط'));
+    } catch (error) {
+      if (mounted) setState(() => _answer = AssistantAnswer(title: 'تعذر الاتصال السحابي', message: error.toString()));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -69,6 +99,8 @@ class _AssistantPageState extends State<AssistantPage> {
             suffixIcon: IconButton(onPressed: _loading ? null : _ask, icon: const Icon(Icons.send)),
           ),
         ),
+        OutlinedButton.icon(onPressed: _loading ? null : _askCloud, icon: const Icon(Icons.cloud_outlined), label: const Text('إرسال السؤال إلى الذكاء السحابي')),
+        const SizedBox(height: 6),
         if (_loading) const Padding(padding: EdgeInsets.all(24), child: Center(child: CircularProgressIndicator())),
         if (_answer != null) ...[
           const SizedBox(height: 16),
