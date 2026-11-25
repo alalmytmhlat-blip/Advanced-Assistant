@@ -1,0 +1,26 @@
+# Dart / Flutter
+.dart_tool/
+.packages
+.pub/
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+
+# Android / IDE
+.idea/
+*.iml
+android/.gradle/
+android/local.properties
+android/key.properties
+**/GeneratedPluginRegistrant.java
+
+# Secrets and local data
+.env
+.env.*
+!.env.example
+*.jks
+*.keystore
+*.sqlite
+*.db
+*.db-journal
+backup/
