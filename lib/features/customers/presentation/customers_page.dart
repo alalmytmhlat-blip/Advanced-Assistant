@@ -59,6 +59,29 @@ class _CustomersPageState extends State<CustomersPage> {
     try { await repo.archive(c.id); await load(); }
     on Object { if (mounted) { ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تعذر أرشفة العميل'))); } }
   }
+  List<Widget> _subtitleWidgets(CustomerRecord customer, bool showBalance) {
+    final widgets = <Widget>[];
+    final phone = customer.phone;
+    if (phone != null) {
+      widgets.add(Text(phone));
+    }
+    if (showBalance) {
+      widgets.add(Text('الرصيد: ${customer.currentBalance}'));
+    }
+    return widgets;
+  }
+
+  List<PopupMenuEntry<String>> _menuItems(bool update, bool remove) {
+    final items = <PopupMenuEntry<String>>[];
+    if (update) {
+      items.add(const PopupMenuItem(value: 'edit', child: Text('تعديل')));
+    }
+    if (remove) {
+      items.add(const PopupMenuItem(value: 'archive', child: Text('أرشفة')));
+    }
+    return items;
+  }
+
   @override
   Widget build(BuildContext context) {
     final create = can(AppPermission.customerCreate), update = can(AppPermission.customerUpdate), remove = can(AppPermission.customerArchive), balance = can(AppPermission.balanceRead);
@@ -81,16 +104,15 @@ class _CustomersPageState extends State<CustomersPage> {
               return Card(child: ListTile(
                 leading: CircleAvatar(child: Text(c.name.characters.first)),
                 title: Text(c.name, style: const TextStyle(fontWeight: FontWeight.bold)),
-                subtitle: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  ...(c.phone != null ? <Widget>[Text(c.phone!)] : const <Widget>[]),
-                  ...(balance ? [Text('الرصيد: ${c.currentBalance}')] : const <Widget>[]),
-                ]),
+                subtitle: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: _subtitleWidgets(c, balance),
+                ),
                 onTap: update ? () => edit(c) : null,
                 trailing: update || remove ? PopupMenuButton<String>(
                   onSelected: (v) { if (v == 'edit') { edit(c); } if (v == 'archive') { archive(c); } },
-                  itemBuilder: (_) => [
-                    ...(update ? <PopupMenuEntry<String>>[const PopupMenuItem(value: 'edit', child: Text('تعديل'))] : const <PopupMenuEntry<String>>[]),
-                    ...(remove ? <PopupMenuEntry<String>>[const PopupMenuItem(value: 'archive', child: Text('أرشفة'))] : const <PopupMenuEntry<String>>[])]) : null,
+                  itemBuilder: (_) => _menuItems(update, remove),
+                ) : null,
               ));
             }))),
       ]),
