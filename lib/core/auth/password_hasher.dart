@@ -3,7 +3,6 @@ import 'dart:math';
 import 'package:cryptography/cryptography.dart';
 
 /// Versioned PBKDF2-HMAC-SHA256 password hashing.
-/// Production default: 600,000 iterations. Inject lower values only in tests.
 class PasswordHasher {
   PasswordHasher({this.iterations = 600000, Random? random})
       : _random = random ?? Random.secure();
@@ -11,10 +10,14 @@ class PasswordHasher {
   static const int saltLength = 16;
   static const int keyLengthBits = 256;
   static const String algorithmId = 'pbkdf2-sha256-v1';
+
   final int iterations;
   final Random _random;
 
   Future<String> hash(String password) async {
+    if (iterations < 10000 || iterations > 1000000) {
+      throw ArgumentError.value(iterations, 'iterations');
+    }
     final salt = List<int>.generate(saltLength, (_) => _random.nextInt(256));
     final derived = await _derive(password, salt, iterations);
     return algorithmId + r'$' + iterations.toString() + r'$' +
@@ -54,18 +57,11 @@ class PasswordHasher {
   }
 
   static String _toHex(List<int> bytes) =>
-      bytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
+      bytes.map((byte) => byte.toRadixString(16).padLeft(2, '0')).join();
 
   static List<int>? _fromHex(String value) {
     if (value.isEmpty || value.length.isOdd ||
-        !RegExp(r'^[0-9a-f]+
-    return [
-      for (var i = 0; i < value.length; i += 2)
-        int.parse(value.substring(i, i + 2), radix: 16),
-    ];
-  }
-}
-).hasMatch(value)) {
+        !RegExp(r'^[0-9a-f]+$').hasMatch(value)) {
       return null;
     }
     return [
