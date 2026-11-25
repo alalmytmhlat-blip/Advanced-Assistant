@@ -7,6 +7,7 @@ import '../../../core/auth/authorization_policy.dart';
 import '../../../core/auth/authorization_service.dart';
 import '../data/customer_model.dart';
 import '../data/customer_repository.dart';
+import 'customer_balance_page.dart';
 
 class CustomersPage extends StatefulWidget {
   const CustomersPage({super.key, required this.database, required this.authService});
@@ -75,13 +76,16 @@ class _CustomersPageState extends State<CustomersPage> {
     return widgets;
   }
 
-  List<PopupMenuEntry<String>> _menuItems(bool update, bool remove) {
+  List<PopupMenuEntry<String>> _menuItems(bool update, bool remove, bool showBalance) {
     final items = <PopupMenuEntry<String>>[];
     if (update) {
       items.add(const PopupMenuItem(value: 'edit', child: Text('تعديل')));
     }
     if (remove) {
       items.add(const PopupMenuItem(value: 'archive', child: Text('أرشفة')));
+    }
+    if (showBalance) {
+      items.add(const PopupMenuItem(value: 'balance', child: Text('الرصيد وسجل التغييرات')));
     }
     return items;
   }
@@ -113,9 +117,21 @@ class _CustomersPageState extends State<CustomersPage> {
                   children: _subtitleWidgets(c, balance),
                 ),
                 onTap: update ? () => edit(c) : null,
-                trailing: update || remove ? PopupMenuButton<String>(
-                  onSelected: (v) { if (v == 'edit') { edit(c); } if (v == 'archive') { archive(c); } },
-                  itemBuilder: (_) => _menuItems(update, remove),
+                trailing: update || remove || balance ? PopupMenuButton<String>(
+                  onSelected: (v) {
+                    if (v == 'edit') { edit(c); }
+                    if (v == 'archive') { archive(c); }
+                    if (v == 'balance') {
+                      Navigator.of(context).push(MaterialPageRoute<void>(
+                        builder: (_) => CustomerBalancePage(
+                          database: widget.database,
+                          authService: widget.authService,
+                          customer: c,
+                        ),
+                      ));
+                    }
+                  },
+                  itemBuilder: (_) => _menuItems(update, remove, balance),
                 ) : null,
               ));
             }))),
