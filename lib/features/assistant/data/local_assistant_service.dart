@@ -1,3 +1,4 @@
+// ignore_for_file: curly_braces_in_flow_control_structures
 import 'package:sqflite/sqflite.dart';
 import '../../../core/auth/app_permission.dart';
 import '../../../core/auth/app_role.dart';
