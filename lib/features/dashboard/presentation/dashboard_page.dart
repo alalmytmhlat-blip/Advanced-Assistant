@@ -1,3 +1,4 @@
+// ignore_for_file: deprecated_member_use
 import 'package:flutter/material.dart';
 import 'package:sqflite/sqflite.dart';
 import '../../../core/auth/auth_service.dart';

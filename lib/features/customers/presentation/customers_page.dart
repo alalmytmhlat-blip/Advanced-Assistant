@@ -1,3 +1,4 @@
+// ignore_for_file: deprecated_member_use
 import 'package:flutter/material.dart';
 import 'package:sqflite/sqflite.dart';
 import '../../../core/auth/app_permission.dart';
@@ -51,12 +52,12 @@ class _CustomersPageState extends State<CustomersPage> {
   }
   Future<void> archive(CustomerRecord c) async {
     final yes = await showDialog<bool>(context: context, builder: (ctx) => AlertDialog(
-      title: const Text('أرشفة العميل'), content: Text('هل تريد أرشفة ' + c.name + '؟'),
+      title: const Text('أرشفة العميل'), content: Text('هل تريد أرشفة ${c.name}؟'),
       actions: [TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('إلغاء')),
         FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('أرشفة'))]));
-    if (yes != true) return;
+    if (yes != true) { return; }
     try { await repo.archive(c.id); await load(); }
-    on Object { if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تعذر أرشفة العميل'))); }
+    on Object { if (mounted) { ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تعذر أرشفة العميل'))); } }
   }
   @override
   Widget build(BuildContext context) {
@@ -82,7 +83,7 @@ class _CustomersPageState extends State<CustomersPage> {
                 title: Text(c.name, style: const TextStyle(fontWeight: FontWeight.bold)),
                 subtitle: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   if (c.phone != null) Text(c.phone!),
-                  if (balance) Text('الرصيد: ' + c.currentBalance),
+                  if (balance) Text('الرصيد: ${c.currentBalance}'),
                 ]),
                 onTap: update ? () => edit(c) : null,
                 trailing: update || remove ? PopupMenuButton<String>(
