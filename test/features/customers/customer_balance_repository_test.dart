@@ -8,6 +8,7 @@ import 'package:advanced_assistant/core/auth/password_hasher.dart';
 import 'package:advanced_assistant/core/auth/session_secret_store.dart';
 import 'package:advanced_assistant/core/database/database_provider.dart';
 import 'package:advanced_assistant/features/customers/data/customer_balance_repository.dart';
+import 'package:advanced_assistant/features/customers/data/balance_change_model.dart';
 import 'package:advanced_assistant/features/customers/data/customer_model.dart';
 import 'package:advanced_assistant/features/customers/data/customer_repository.dart';
 
