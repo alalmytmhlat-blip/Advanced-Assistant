@@ -58,7 +58,16 @@ class PasswordHasher {
 
   static List<int>? _fromHex(String value) {
     if (value.isEmpty || value.length.isOdd ||
-        !RegExp(r'^[0-9a-f]+$').hasMatch(value)) return null;
+        !RegExp(r'^[0-9a-f]+
+    return [
+      for (var i = 0; i < value.length; i += 2)
+        int.parse(value.substring(i, i + 2), radix: 16),
+    ];
+  }
+}
+).hasMatch(value)) {
+      return null;
+    }
     return [
       for (var i = 0; i < value.length; i += 2)
         int.parse(value.substring(i, i + 2), radix: 16),
