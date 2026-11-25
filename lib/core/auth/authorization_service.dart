@@ -1,6 +1,7 @@
 import 'package:sqflite/sqflite.dart';
 
 import 'app_permission.dart';
+import 'app_role.dart';
 import 'auth_service.dart';
 import 'authorization_policy.dart';
 
