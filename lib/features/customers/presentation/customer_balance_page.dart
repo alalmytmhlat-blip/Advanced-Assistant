@@ -107,7 +107,10 @@ class _CustomerBalancePageState extends State<CustomerBalancePage> {
                       return 'أدخل الرصيد الجديد';
                     }
                     if (value.trim().length > 120 ||
-                        !RegExp(r'^[+-]?(?:\d+(?:\.\d*)?|\.\d+)
+                        !RegExp(r'^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$')
+                            .hasMatch(value.trim())) {
+                      return 'أدخل قيمة رقمية صحيحة';
+                    }
                     return null;
                   },
                 ),
