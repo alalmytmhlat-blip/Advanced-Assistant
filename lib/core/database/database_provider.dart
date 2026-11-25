@@ -10,10 +10,12 @@ class DatabaseProvider {
   final String? databasePath;
   Database? _database;
 
+  Future<String> get resolvedPath async => databasePath ?? p.join(await getDatabasesPath(), databaseFileName);
+
   Future<Database> get database async {
     final existing = _database;
     if (existing != null && existing.isOpen) return existing;
-    final path = databasePath ?? p.join(await getDatabasesPath(), databaseFileName);
+    final path = await resolvedPath;
     final opened = await openDatabase(
       path,
       version: DatabaseSchema.version,
