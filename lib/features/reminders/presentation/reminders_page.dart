@@ -6,6 +6,7 @@ import '../../../core/auth/auth_service.dart';
 import '../../../core/auth/authorization_service.dart';
 import '../data/reminder_model.dart';
 import '../data/reminder_repository.dart';
+import '../../../core/notifications/local_notification_service.dart';
 
 class RemindersPage extends StatefulWidget {
   const RemindersPage({super.key, required this.database, required this.authService});
@@ -36,7 +37,8 @@ class _RemindersPageState extends State<RemindersPage> {
       final status = switch (_filter) {
         'active' => 'active', 'completed' => 'completed', 'postponed' => 'postponed', _ => 'active',
       };
-      final results = await Future.wait([_repository.list(status: status), _repository.customerChoices()]);
+      final results = await Future.wait([_repository.list(status: status), _repository.customerChoices(), _repository.list(limit: 500)]);
+      await LocalNotificationService.instance.syncFollowups(results[2] as List<ReminderRecord>);
       if (!mounted) return;
       setState(() { _items = results[0] as List<ReminderRecord>; _customers = results[1] as List<ReminderCustomer>; _loading = false; });
     } catch (error) {
