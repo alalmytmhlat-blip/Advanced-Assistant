@@ -1,9 +1,9 @@
 /// Versioned SQL schema for the local-first application database.
 class DatabaseSchema {
   DatabaseSchema._();
+  static const int version = 3;
 
-  static const int version = 2;
-
+  /// Version 1 tables and indexes. Keep this list immutable in meaning.
   static const List<String> createStatements = [
     '''
     CREATE TABLE app_users (
@@ -145,7 +145,6 @@ class DatabaseSchema {
       created_at TEXT NOT NULL
     )
     ''',
-    ...migrationV2Statements,
     'CREATE INDEX idx_customers_name ON customers(name COLLATE NOCASE)',
     'CREATE INDEX idx_customers_phone ON customers(phone)',
     'CREATE INDEX idx_customers_archived ON customers(is_archived)',
@@ -159,8 +158,6 @@ class DatabaseSchema {
     'CREATE INDEX idx_assistant_messages_conversation ON assistant_messages(conversation_id, created_at)',
   ];
 
-  /// Additive migration: permissions are explicit grants and customer scopes
-  /// are allow-lists. Existing users retain their role; no data is discarded.
   static const List<String> migrationV2Statements = [
     '''
     CREATE TABLE user_permissions (
@@ -183,5 +180,27 @@ class DatabaseSchema {
     ''',
     'CREATE INDEX idx_user_permissions_user ON user_permissions(user_id)',
     'CREATE INDEX idx_user_customer_scopes_customer ON user_customer_scopes(customer_id)',
+  ];
+
+  static const List<String> migrationV3Statements = [
+    '''
+    CREATE TABLE auth_sessions (
+      id TEXT PRIMARY KEY NOT NULL,
+      user_id TEXT NOT NULL REFERENCES app_users(id) ON DELETE CASCADE,
+      token_hash TEXT NOT NULL UNIQUE,
+      created_at TEXT NOT NULL,
+      expires_at TEXT NOT NULL,
+      revoked_at TEXT
+    )
+    ''',
+    '''
+    CREATE TABLE auth_login_attempts (
+      username TEXT PRIMARY KEY NOT NULL COLLATE NOCASE,
+      failed_attempts INTEGER NOT NULL DEFAULT 0,
+      locked_until TEXT,
+      updated_at TEXT NOT NULL
+    )
+    ''',
+    'CREATE INDEX idx_auth_sessions_user ON auth_sessions(user_id, expires_at)',
   ];
 }

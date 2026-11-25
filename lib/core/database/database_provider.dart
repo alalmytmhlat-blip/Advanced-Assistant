@@ -6,21 +6,14 @@ import 'database_schema.dart';
 /// Owns the single local SQLite connection used by repositories.
 class DatabaseProvider {
   DatabaseProvider({this.databasePath});
-
   static const String databaseFileName = 'advanced_assistant.db';
-
   final String? databasePath;
   Database? _database;
 
   Future<Database> get database async {
     final existing = _database;
     if (existing != null && existing.isOpen) return existing;
-
-    final path = databasePath ?? p.join(
-      await getDatabasesPath(),
-      databaseFileName,
-    );
-
+    final path = databasePath ?? p.join(await getDatabasesPath(), databaseFileName);
     final opened = await openDatabase(
       path,
       version: DatabaseSchema.version,
@@ -30,13 +23,17 @@ class DatabaseProvider {
       },
       onCreate: (db, version) async {
         final batch = db.batch();
-        for (final statement in DatabaseSchema.createStatements) {
+        for (final statement in [
+          ...DatabaseSchema.createStatements,
+          ...DatabaseSchema.migrationV2Statements,
+          ...DatabaseSchema.migrationV3Statements,
+        ]) {
           batch.execute(statement);
         }
         await batch.commit(noResult: true);
       },
       onUpgrade: (db, oldVersion, newVersion) async {
-        // Migrations are additive and versioned. Never delete user data.
+        // Each missing migration is applied exactly once; existing data stays.
         if (oldVersion < 1) {
           final batch = db.batch();
           for (final statement in DatabaseSchema.createStatements) {
@@ -51,9 +48,15 @@ class DatabaseProvider {
           }
           await batch.commit(noResult: true);
         }
+        if (oldVersion < 3) {
+          final batch = db.batch();
+          for (final statement in DatabaseSchema.migrationV3Statements) {
+            batch.execute(statement);
+          }
+          await batch.commit(noResult: true);
+        }
       },
     );
-
     _database = opened;
     return opened;
   }
@@ -61,8 +64,6 @@ class DatabaseProvider {
   Future<void> close() async {
     final current = _database;
     _database = null;
-    if (current != null && current.isOpen) {
-      await current.close();
-    }
+    if (current != null && current.isOpen) await current.close();
   }
 }
