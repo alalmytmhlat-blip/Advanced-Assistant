@@ -43,6 +43,24 @@ void main() {
     await provider.close();
   });
 
+  test('active filter returns only new and scheduled reminders', () async {
+    final provider = DatabaseProvider(databasePath: inMemoryDatabasePath);
+    final db = await provider.database;
+    final auth = AuthService(db, _TestSecretStore(), passwordHasher: PasswordHasher(iterations: 10000));
+    await auth.createInitialManager(username: 'manager', displayName: 'المدير', password: 'Strong-password-123');
+    await auth.login(username: 'manager', password: 'Strong-password-123');
+    final repo = ReminderRepository(db, AuthorizationService(db, auth));
+    final first = await repo.create(title: 'جديدة', dueAt: DateTime.utc(2026, 11, 26));
+    final second = await repo.create(title: 'مجدولة', dueAt: DateTime.utc(2026, 11, 27));
+    final third = await repo.create(title: 'مكتملة', dueAt: DateTime.utc(2026, 11, 28));
+    await repo.updateStatus(id: second.id, status: 'scheduled');
+    await repo.updateStatus(id: third.id, status: 'completed');
+    final active = await repo.list(status: 'active');
+    expect(active.map((item) => item.id).toSet(), {first.id, second.id});
+    expect(active.any((item) => item.id == third.id), isFalse);
+    await provider.close();
+  });
+
   test('requires authentication and rejects empty title', () async {
     final provider = DatabaseProvider(databasePath: inMemoryDatabasePath);
     final db = await provider.database;

@@ -34,7 +34,7 @@ class _RemindersPageState extends State<RemindersPage> {
     setState(() { _loading = true; _error = null; });
     try {
       final status = switch (_filter) {
-        'active' => null, 'completed' => 'completed', 'postponed' => 'postponed', _ => null,
+        'active' => 'active', 'completed' => 'completed', 'postponed' => 'postponed', _ => 'active',
       };
       final results = await Future.wait([_repository.list(status: status), _repository.customerChoices()]);
       if (!mounted) return;

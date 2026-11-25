@@ -25,7 +25,9 @@ class ReminderRepository {
     if (limit < 1 || limit > 500) throw ArgumentError.value(limit, 'limit');
     final clauses = <String>[];
     final args = <Object?>[];
-    if (status != null) {
+    if (status == 'active') {
+      clauses.add("f.status IN ('new', 'scheduled')");
+    } else if (status != null) {
       if (!ReminderStatus.values.contains(status)) throw ArgumentError.value(status, 'status');
       clauses.add('f.status = ?');
       args.add(status);
