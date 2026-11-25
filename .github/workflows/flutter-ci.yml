@@ -30,10 +30,21 @@ jobs:
       - name: Generate Android platform files when absent
         run: |
           if [ ! -d android ]; then
-            flutter create --platforms=android --project-name=advanced_assistant .
+            flutter create --platforms=android --org com.smartassistant --project-name=advanced_assistant .
           fi
+      - name: Configure Android application identity and notification receivers
+        run: python3 tool/configure_android.py
       - name: Build release APK
         run: flutter build apk --release
+      - name: Verify APK package and signature
+        run: |
+          APK=build/app/outputs/flutter-apk/app-release.apk
+          test -s "$APK"
+          AAPT=$(find "$ANDROID_HOME/build-tools" -name aapt -type f | sort -V | tail -n 1)
+          APKSIGNER=$(find "$ANDROID_HOME/build-tools" -name apksigner -type f | sort -V | tail -n 1)
+          "$AAPT" dump badging "$APK" | grep -F "package: name='com.smartassistant.advanced_assistant'"
+          "$APKSIGNER" verify --verbose "$APK"
+          sha256sum "$APK"
       - name: Upload release APK
         uses: actions/upload-artifact@v4
         with:
