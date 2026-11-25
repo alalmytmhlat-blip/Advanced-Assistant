@@ -33,16 +33,16 @@ class _CustomersPageState extends State<CustomersPage> {
     try {
       final a = await authz.loadContext();
       final rows = await repo.search(search.text);
-      if (!mounted) return;
+      if (!mounted) { return; }
       setState(() { access = a; customers = rows; loading = false; });
     } on Object catch (e) {
-      if (!mounted) return;
+      if (!mounted) { return; }
       setState(() { error = e is AuthorizationException ? e.message : 'تعذر تحميل العملاء'; loading = false; });
     }
   }
   Future<void> edit([CustomerRecord? customer]) async {
     final draft = await showDialog<CustomerDraft>(context: context, builder: (_) => _CustomerDialog(customer: customer));
-    if (draft == null || !mounted) return;
+    if (draft == null || !mounted) { return; }
     try {
       if (customer == null) { await repo.create(draft); } else { await repo.update(customer.id, draft); }
       await load();
@@ -87,7 +87,7 @@ class _CustomersPageState extends State<CustomersPage> {
                 ]),
                 onTap: update ? () => edit(c) : null,
                 trailing: update || remove ? PopupMenuButton<String>(
-                  onSelected: (v) { if (v == 'edit') edit(c); if (v == 'archive') archive(c); },
+                  onSelected: (v) { if (v == 'edit') { edit(c); } if (v == 'archive') { archive(c); } },
                   itemBuilder: (_) => [
                     if (update) const PopupMenuItem(value: 'edit', child: Text('تعديل')),
                     if (remove) const PopupMenuItem(value: 'archive', child: Text('أرشفة'))]) : null,
@@ -126,7 +126,7 @@ class _CustomerDialogState extends State<_CustomerDialog> {
       field(name, 'اسم العميل', required: true), field(phone, 'رقم الهاتف', type: TextInputType.phone),
       field(address, 'العنوان'), field(category, 'التصنيف'), field(notes, 'ملاحظات', lines: 3)]))),
     actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('إلغاء')),
-      FilledButton(onPressed: () { if (!keyForm.currentState!.validate()) return;
+      FilledButton(onPressed: () { if (!keyForm.currentState!.validate()) { return; }
         Navigator.pop(context, CustomerDraft(name: name.text, phone: phone.text, address: address.text, category: category.text, notes: notes.text)); },
         child: const Text('حفظ'))]);
 }
