@@ -108,6 +108,38 @@ class _RemindersPageState extends State<RemindersPage> {
     note.dispose();
   }
 
+
+  Future<void> _assign(ReminderRecord item) async {
+    try {
+      final users = await _repository.listAssignableUsers();
+      if (!mounted) return;
+      String? selected = item.assignedTo;
+      final result = await showDialog<String>(
+        context: context,
+        builder: (ctx) => StatefulBuilder(builder: (ctx, setDialog) => AlertDialog(
+          title: const Text('تعيين المتابعة لمستخدم'),
+          content: DropdownButtonFormField<String>(
+            value: selected,
+            isExpanded: true,
+            decoration: const InputDecoration(labelText: 'المستخدم المسؤول'),
+            items: users.map((user) => DropdownMenuItem(value: user.id, child: Text(user.displayName))).toList(),
+            onChanged: (value) => setDialog(() => selected = value),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('إلغاء')),
+            FilledButton(onPressed: () => selected == null ? null : Navigator.pop(ctx, selected), child: const Text('حفظ التعيين')),
+          ],
+        )),
+      );
+      if (result != null) {
+        await _repository.assign(followupId: item.id, userId: result);
+        await _load();
+      }
+    } catch (error) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('تعذر تعيين المتابعة: $error')));
+    }
+  }
+
   Future<void> _changeStatus(ReminderRecord item, String status) async {
     try { await _repository.updateStatus(id: item.id, status: status); await _load(); }
     catch (error) { if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('تعذر تحديث المتابعة: $error'))); }
@@ -140,6 +172,7 @@ class _RemindersPageState extends State<RemindersPage> {
               onComplete: () => _changeStatus(_items[index], 'completed'),
               onPostpone: () => _changeStatus(_items[index], 'postponed'),
               onSchedule: () => _changeStatus(_items[index], 'scheduled'),
+              onAssign: () => _assign(_items[index]),
             ),
           ))),
       ]),
@@ -150,11 +183,12 @@ class _RemindersPageState extends State<RemindersPage> {
 }
 
 class _ReminderCard extends StatelessWidget {
-  const _ReminderCard({required this.item, required this.onComplete, required this.onPostpone, required this.onSchedule});
+  const _ReminderCard({required this.item, required this.onComplete, required this.onPostpone, required this.onSchedule, required this.onAssign});
   final ReminderRecord item;
   final VoidCallback onComplete;
   final VoidCallback onPostpone;
   final VoidCallback onSchedule;
+  final VoidCallback onAssign;
 
   @override
   Widget build(BuildContext context) {
@@ -168,6 +202,7 @@ class _ReminderCard extends StatelessWidget {
         Expanded(child: Text(item.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16))),
         if (overdue) const Chip(label: Text('متأخرة'), avatar: Icon(Icons.warning_amber, size: 16)),
       ]),
+      if (item.assigneeName != null) Padding(padding: const EdgeInsets.only(top: 4), child: Text('المسؤول: ${item.assigneeName}')),
       if (item.customerName != null) Padding(padding: const EdgeInsets.only(top: 6), child: Text('العميل: ${item.customerName}')),
       if (item.note != null && item.note!.isNotEmpty) Padding(padding: const EdgeInsets.only(top: 6), child: Text(item.note!)),
       const SizedBox(height: 8),
@@ -176,6 +211,7 @@ class _ReminderCard extends StatelessWidget {
         TextButton.icon(onPressed: onComplete, icon: const Icon(Icons.check_circle_outline), label: const Text('تمت')),
         TextButton.icon(onPressed: onSchedule, icon: const Icon(Icons.event_repeat), label: const Text('جدولة')),
         TextButton.icon(onPressed: onPostpone, icon: const Icon(Icons.snooze), label: const Text('تأجيل')),
+        TextButton.icon(onPressed: onAssign, icon: const Icon(Icons.assignment_ind_outlined), label: const Text('تعيين')),
       ]),
     ])));
   }

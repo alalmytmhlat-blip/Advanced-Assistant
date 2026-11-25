@@ -42,8 +42,8 @@ class ReminderRepository {
       }
     }
     final rows = await database.rawQuery('''
-      SELECT f.*, c.name AS customer_name
-      FROM followups f LEFT JOIN customers c ON c.id = f.customer_id
+      SELECT f.*, c.name AS customer_name, u.display_name AS assignee_name
+      FROM followups f LEFT JOIN customers c ON c.id = f.customer_id LEFT JOIN app_users u ON u.id = f.assigned_to
       ${clauses.isEmpty ? '' : 'WHERE ${clauses.join(' AND ')}'}
       ORDER BY CASE f.status WHEN 'completed' THEN 2 WHEN 'cancelled' THEN 3 ELSE 0 END, f.due_at ASC
       LIMIT ?

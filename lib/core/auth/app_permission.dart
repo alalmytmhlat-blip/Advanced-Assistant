@@ -11,6 +11,7 @@ abstract final class AppPermission {
   static const followupRead = 'followup.read';
   static const followupCreate = 'followup.create';
   static const followupUpdate = 'followup.update';
+  static const followupAssign = 'followup.assign';
   static const inventoryRead = 'inventory.read';
   static const inventoryManage = 'inventory.manage';
   static const reportsRead = 'reports.read';
@@ -18,21 +19,9 @@ abstract final class AppPermission {
   static const settingsManage = 'settings.manage';
 
   static const all = <String>{
-    customerRead,
-    customerCreate,
-    customerUpdate,
-    customerArchive,
-    customerNotesCreate,
-    contactRecord,
-    balanceRead,
-    balanceUpdate,
-    followupRead,
-    followupCreate,
-    followupUpdate,
-    inventoryRead,
-    inventoryManage,
-    reportsRead,
-    usersManage,
-    settingsManage,
+    customerRead, customerCreate, customerUpdate, customerArchive,
+    customerNotesCreate, contactRecord, balanceRead, balanceUpdate,
+    followupRead, followupCreate, followupUpdate, followupAssign,
+    inventoryRead, inventoryManage, reportsRead, usersManage, settingsManage,
   };
 }
