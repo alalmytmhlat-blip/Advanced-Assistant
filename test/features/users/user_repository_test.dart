@@ -16,7 +16,7 @@ class _Store implements SessionSecretStore {
 }
 void main(){
  TestWidgetsFlutterBinding.ensureInitialized();
- setUpAll(()=>{sqfliteFfiInit(),databaseFactory=databaseFactoryFfi});
+ setUpAll(() { sqfliteFfiInit(); databaseFactory = databaseFactoryFfi; });
  test('manager creates users and deactivation revokes their sessions',() async {
   final provider=DatabaseProvider(databasePath:inMemoryDatabasePath);final db=await provider.database;
   final auth=AuthService(db,_Store(),passwordHasher:PasswordHasher(iterations:10000));
