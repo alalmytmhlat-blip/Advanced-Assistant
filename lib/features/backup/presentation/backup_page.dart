@@ -24,14 +24,8 @@ class _BackupPageState extends State<BackupPage> {
   @override
   void initState() {
     super.initState();
-    final db = widget.provider.database;
-    _backup = _createService(db);
+    _backup = BackupService(widget.provider, widget.authService);
   }
-  BackupService _createService(dynamic db) => BackupService(
-    widget.provider,
-    AuthorizationService(db, widget.authService),
-  );
-
   Future<void> _create() async {
     setState(() { _working = true; _message = null; });
     try {
