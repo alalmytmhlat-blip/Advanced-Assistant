@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 import 'package:advanced_assistant/core/auth/auth_service.dart';
+import 'package:advanced_assistant/core/auth/authorization_policy.dart';
 import 'package:advanced_assistant/core/auth/authorization_service.dart';
 import 'package:advanced_assistant/core/auth/password_hasher.dart';
 import 'package:advanced_assistant/core/auth/session_secret_store.dart';

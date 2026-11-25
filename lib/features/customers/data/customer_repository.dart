@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:sqflite/sqflite.dart';
 
 import '../../../core/auth/app_permission.dart';
+import '../../../core/auth/app_role.dart';
 import '../../../core/auth/authorization_policy.dart';
 import '../../../core/auth/authorization_service.dart';
 import 'customer_model.dart';
