@@ -5,6 +5,13 @@ enum AppRole {
   inventoryManager,
   debtCollector;
 
+  String get storageValue => switch (this) {
+    AppRole.manager => 'manager',
+    AppRole.employee => 'employee',
+    AppRole.inventoryManager => 'inventory_manager',
+    AppRole.debtCollector => 'debt_collector',
+  };
+
   static AppRole? fromStorage(String value) {
     switch (value) {
       case 'manager':
