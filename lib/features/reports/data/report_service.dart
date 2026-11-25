@@ -5,7 +5,6 @@ import 'dart:io';
 import 'dart:convert';
 import 'package:flutter/painting.dart';
 import 'package:csv/csv.dart';
-import 'package:cross_file/cross_file.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:image/image.dart' as img;
 import 'package:pdfrx/pdfrx.dart';
