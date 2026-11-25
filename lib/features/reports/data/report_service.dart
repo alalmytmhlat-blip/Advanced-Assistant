@@ -7,8 +7,9 @@ import 'package:flutter/painting.dart';
 import 'package:csv/csv.dart';
 import 'package:cross_file/cross_file.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:pdf/widgets.dart' as pw;
-import 'package:pdf/pdf.dart';
+import 'package:image/image.dart' as img;
+import 'package:pdfrx/pdfrx.dart';
+import '../../../core/pdf/pdf_runtime.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:sqflite/sqflite.dart';
 
@@ -79,28 +80,39 @@ class ReportService {
   }
 
   Future<void> sharePdf(ReportData report) async {
-    final doc = pw.Document();
-    final rowsPerPage = 24;
-    final pageCount = report.rows.isEmpty ? 1 : (report.rows.length / rowsPerPage).ceil();
-    for (var page = 0; page < pageCount; page++) {
-      final start = page * rowsPerPage;
-      final end = (start + rowsPerPage).clamp(0, report.rows.length);
-      final lines = <String>[
-        report.headers.join('   |   '),
-        ...report.rows.skip(start).take(end - start).map((r) => r.join('   |   ')),
-      ];
-      final png = await _renderArabicPage(report.title, lines, page + 1, pageCount);
-      doc.addPage(pw.Page(
-        pageFormat: PdfPageFormat.a4,
-        margin: pw.EdgeInsets.zero,
-        build: (_) => pw.Image(pw.MemoryImage(png), fit: pw.BoxFit.fill),
-      ));
+    await PdfRuntime.initialize();
+    final pages = <PdfDocument>[];
+    PdfDocument? merged;
+    try {
+      final rowsPerPage = 24;
+      final pageCount = report.rows.isEmpty ? 1 : (report.rows.length / rowsPerPage).ceil();
+      for (var page = 0; page < pageCount; page++) {
+        final start = page * rowsPerPage;
+        final end = (start + rowsPerPage).clamp(0, report.rows.length);
+        final lines = <String>[
+          report.headers.join('   |   '),
+          ...report.rows.skip(start).take(end - start).map((r) => r.join('   |   ')),
+        ];
+        final png = await _renderArabicPage(report.title, lines, page + 1, pageCount);
+        final decoded = img.decodePng(png);
+        if (decoded == null) throw StateError('تعذر تجهيز صفحة التقرير');
+        final jpeg = Uint8List.fromList(img.encodeJpg(decoded, quality: 90));
+        final pageDoc = await PdfDocument.createFromJpegData(
+          jpeg, width: 595, height: 842, sourceName: 'report-page-${page + 1}',
+        );
+        pages.add(pageDoc);
+      }
+      merged = await PdfDocument.createNew(sourceName: _safeName(report.title));
+      merged.pages = pages.expand((document) => document.pages).toList(growable: false);
+      final bytes = await merged.encodePdf();
+      final dir = await getTemporaryDirectory();
+      final file = File('${dir.path}/${_safeName(report.title)}.pdf');
+      await file.writeAsBytes(bytes, flush: true);
+      await SharePlus.instance.share(ShareParams(files: [XFile(file.path)], text: report.title));
+    } finally {
+      if (merged != null) await merged.dispose();
+      for (final page in pages) { await page.dispose(); }
     }
-    final bytes = await doc.save();
-    final dir = await getTemporaryDirectory();
-    final file = File('${dir.path}/${_safeName(report.title)}.pdf');
-    await file.writeAsBytes(bytes, flush: true);
-    await SharePlus.instance.share(ShareParams(files: [XFile(file.path)], text: report.title));
   }
 
   Future<Uint8List> _renderArabicPage(String title, List<String> lines, int page, int pages) async {

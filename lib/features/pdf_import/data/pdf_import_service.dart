@@ -1,6 +1,7 @@
 // ignore_for_file: curly_braces_in_flow_control_structures
 import 'dart:io';
 import 'package:pdfrx/pdfrx.dart';
+import '../../../core/pdf/pdf_runtime.dart';
 import '../../../core/auth/authorization_service.dart';
 import '../../customers/data/customer_model.dart';
 import '../../customers/data/customer_repository.dart';
@@ -46,13 +47,8 @@ class PdfImportResult {
 class PdfImportService {
   PdfImportService(this.authorization);
   final AuthorizationService authorization;
-  static bool _initialized = false;
-
   Future<PdfImportPreview> prepare(File file, PdfImportKind kind) async {
-    if (!_initialized) {
-      await pdfrxFlutterInitialize();
-      _initialized = true;
-    }
+    await PdfRuntime.initialize();
     final document = await PdfDocument.openFile(file.path);
     try {
       if (document.pages.isEmpty || document.pages.length > 300) {
