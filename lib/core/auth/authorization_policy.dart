@@ -1,3 +1,4 @@
+// ignore_for_file: curly_braces_in_flow_control_structures
 import 'app_permission.dart';
 import 'app_role.dart';
 
