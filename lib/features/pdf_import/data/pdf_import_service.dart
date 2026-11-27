@@ -150,15 +150,15 @@ class PdfImportService {
   ) {
     final rows = <List<String>>[];
     var ignored = 0;
-    for (final raw in text.split(RegExp(r'\\r?\\n'))) {
-      final line = raw.replaceAll(RegExp(r'[\\u200e\\u200f\\u202a-\\u202e]'), '').trim();
+    for (final raw in text.split(RegExp(r'\r?\n'))) {
+      final line = raw.replaceAll(RegExp(r'[\u200e\u200f\u202a-\u202e]'), '').trim();
       if (line.isEmpty || line.length < 2 || _isHeaderOrNoise(line)) {
         ignored++;
         continue;
       }
 
-      final delimiter = line.contains('\\t')
-          ? '\\t'
+      final delimiter = line.contains('\t')
+          ? '\t'
           : line.contains('|')
               ? '|'
               : line.contains(';')
@@ -170,9 +170,9 @@ class PdfImportService {
       if (delimiter != null) {
         columns = _splitQuoted(line, delimiter);
       } else {
-        columns = line.split(RegExp(r'\\s{2,}'));
+        columns = line.split(RegExp(r'\s{2,}'));
         if (columns.length == 1 && kind == PdfImportKind.customers) {
-          final phone = RegExp(r'(?:\\+?967[- ]?)?7\\d{8}|\\b\\d{7,15}\\b').firstMatch(line);
+          final phone = RegExp(r'(?:\+?967[- ]?)?7\d{8}|\b\d{7,15}\b').firstMatch(line);
           if (phone != null) {
             final name = line.replaceFirst(phone.group(0)!, '').trim();
             columns = [name, phone.group(0)!];
@@ -188,8 +188,8 @@ class PdfImportService {
       // A single non-numeric text line is a valid customer/item name in simple lists.
       if (columns.length == 1) {
         final value = columns.single;
-        final hasArabicOrLatin = RegExp(r'[\\u0600-\\u06FFa-zA-Z]').hasMatch(value);
-        final looksNumeric = RegExp(r'^[-+]?\\d+(?:[.,]\\d+)?$').hasMatch(value);
+        final hasArabicOrLatin = RegExp(r'[\u0600-\u06FFa-zA-Z]').hasMatch(value);
+        final looksNumeric = RegExp(r'^[-+]?\d+(?:[.,]\d+)?$').hasMatch(value);
         if (!hasArabicOrLatin || looksNumeric) {
           ignored++;
           continue;
@@ -204,7 +204,7 @@ class PdfImportService {
 
   bool _isHeaderOrNoise(String line) {
     final value = _normalize(line);
-    if (RegExp(r'^\\d{1,4}$').hasMatch(value)) return true;
+    if (RegExp(r'^\d{1,4}$').hasMatch(value)) return true;
     const headers = [
       'الاسم', 'اسم العميل', 'اسم الزبون', 'العميل', 'العملاء',
       'الزبون', 'الزبائن', 'رقم الهاتف', 'الهاتف', 'الجوال',
