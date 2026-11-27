@@ -207,7 +207,7 @@ class PdfImportService {
 
   List<String> _mapCustomerColumns(List<String> columns) {
     final values = columns.map((v) => v.trim()).where((v) => v.isNotEmpty).toList();
-    final phonePattern = RegExp(r'(?:\\+?967[- ]?)?7\\d{8}');
+    final phonePattern = RegExp(r'(?:\+?967[- ]?)?7\d{8}');
     var phone = '';
     var phoneIndex = -1;
     for (var i = 0; i < values.length; i++) {
@@ -220,7 +220,7 @@ class PdfImportService {
     }
     if (phone.isEmpty) {
       for (var i = 0; i < values.length; i++) {
-        if (RegExp(r'^\\d{9}
+        if (RegExp(r'^\d{9}
     final value = _normalize(line);
     if (RegExp(r'^\d{1,4}$').hasMatch(value)) return true;
     const headers = [
@@ -275,7 +275,7 @@ class PdfImportService {
     for (var i = 0; i < values.length; i++) {
       if (i == phoneIndex) continue;
       final value = values[i];
-      if (RegExp(r'^[-+]?\\d+(?:[.,]\\d+)?
+      if (RegExp(r'^[-+]?\d+(?:[.,]\d+)?
     final value = _normalize(line);
     if (RegExp(r'^\d{1,4}$').hasMatch(value)) return true;
     const headers = [
