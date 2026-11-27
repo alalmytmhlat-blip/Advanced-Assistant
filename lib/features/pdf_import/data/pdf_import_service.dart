@@ -66,8 +66,9 @@ class PdfImportService {
     final seenPhones = <String>{};
     final parsed = _parseLines(text, PdfImportKind.customers);
     final rows = parsed.rows.map((values) {
-      final name = values[0];
-      final phone = values.length > 1 ? values[1] : '';
+      final mapped = _mapCustomerColumns(values);
+      final name = mapped[0];
+      final phone = mapped[1];
       final normalizedName = _normalize(name);
       final normalizedPhone = _normalize(phone);
       final duplicate = names.contains(normalizedName) ||
@@ -75,7 +76,7 @@ class PdfImportService {
           !seenNames.add(normalizedName) ||
           (phone.isNotEmpty && !seenPhones.add(normalizedPhone));
       return PdfImportRow(
-        values: [name, phone, values.length > 2 ? values[2] : '', values.length > 3 ? values[3] : ''],
+        values: mapped,
         isDuplicate: duplicate,
         duplicateReason: duplicate ? 'اسم أو هاتف موجود مسبقًا' : null,
         selected: !duplicate,
@@ -174,8 +175,10 @@ class PdfImportService {
         if (columns.length == 1 && kind == PdfImportKind.customers) {
           final phone = RegExp(r'(?:\+?967[- ]?)?7\d{8}|\b\d{7,15}\b').firstMatch(line);
           if (phone != null) {
-            final name = line.replaceFirst(phone.group(0)!, '').trim();
-            columns = [name, phone.group(0)!];
+            final match = phone.group(0)!;
+            final before = line.substring(0, phone.start).trim();
+            final after = line.substring(phone.end).trim();
+            columns = [before.isNotEmpty ? before : after, match];
           }
         }
       }
@@ -200,6 +203,129 @@ class PdfImportService {
       rows.add(columns);
     }
     return (rows: rows, ignored: ignored);
+  }
+
+  List<String> _mapCustomerColumns(List<String> columns) {
+    final values = columns.map((v) => v.trim()).where((v) => v.isNotEmpty).toList();
+    final phonePattern = RegExp(r'(?:\\+?967[- ]?)?7\\d{8}');
+    var phone = '';
+    var phoneIndex = -1;
+    for (var i = 0; i < values.length; i++) {
+      final match = phonePattern.firstMatch(values[i]);
+      if (match != null) {
+        phone = match.group(0)!;
+        phoneIndex = i;
+        break;
+      }
+    }
+    if (phone.isEmpty) {
+      for (var i = 0; i < values.length; i++) {
+        if (RegExp(r'^\\d{9}
+    final value = _normalize(line);
+    if (RegExp(r'^\d{1,4}$').hasMatch(value)) return true;
+    const headers = [
+      'الاسم', 'اسم العميل', 'اسم الزبون', 'العميل', 'العملاء',
+      'الزبون', 'الزبائن', 'رقم الهاتف', 'الهاتف', 'الجوال',
+      'اسم الصنف', 'الصنف', 'الاصناف', 'الكمية', 'الرصيد',
+      'name', 'customer', 'customers', 'phone', 'mobile', 'item',
+      'items', 'quantity', 'balance'
+    ];
+    if (headers.any((h) => value == _normalize(h))) return true;
+    if (value.startsWith('عام #العملاء') || value.startsWith('عام العملاء')) return true;
+    return false;
+  }
+
+  List<String> _splitQuoted(String line, String delimiter) {
+    final result = <String>[];
+    final cell = StringBuffer();
+    var quoted = false;
+    for (var i = 0; i < line.length; i++) {
+      final char = line[i];
+      if (char == '"') {
+        if (quoted && i + 1 < line.length && line[i + 1] == '"') {
+          cell.write('"');
+          i++;
+        } else {
+          quoted = !quoted;
+        }
+      } else if (char == delimiter && !quoted) {
+        result.add(cell.toString().trim());
+        cell.clear();
+      } else {
+        cell.write(char);
+      }
+    }
+    result.add(cell.toString().trim());
+    return result;
+  }
+
+  String _normalize(String value) => value.trim().toLowerCase()
+      .replaceAll(RegExp(r'[\u064B-\u065F\u0670ـ]'), '')
+      .replaceAll('أ', 'ا').replaceAll('إ', 'ا').replaceAll('آ', 'ا')
+      .replaceAll('ى', 'ي').replaceAll(RegExp(r'\s+'), ' ');
+}
+).hasMatch(values[i])) {
+          phone = values[i];
+          phoneIndex = i;
+          break;
+        }
+      }
+    }
+    final textFields = <String>[];
+    for (var i = 0; i < values.length; i++) {
+      if (i == phoneIndex) continue;
+      final value = values[i];
+      if (RegExp(r'^[-+]?\\d+(?:[.,]\\d+)?
+    final value = _normalize(line);
+    if (RegExp(r'^\d{1,4}$').hasMatch(value)) return true;
+    const headers = [
+      'الاسم', 'اسم العميل', 'اسم الزبون', 'العميل', 'العملاء',
+      'الزبون', 'الزبائن', 'رقم الهاتف', 'الهاتف', 'الجوال',
+      'اسم الصنف', 'الصنف', 'الاصناف', 'الكمية', 'الرصيد',
+      'name', 'customer', 'customers', 'phone', 'mobile', 'item',
+      'items', 'quantity', 'balance'
+    ];
+    if (headers.any((h) => value == _normalize(h))) return true;
+    if (value.startsWith('عام #العملاء') || value.startsWith('عام العملاء')) return true;
+    return false;
+  }
+
+  List<String> _splitQuoted(String line, String delimiter) {
+    final result = <String>[];
+    final cell = StringBuffer();
+    var quoted = false;
+    for (var i = 0; i < line.length; i++) {
+      final char = line[i];
+      if (char == '"') {
+        if (quoted && i + 1 < line.length && line[i + 1] == '"') {
+          cell.write('"');
+          i++;
+        } else {
+          quoted = !quoted;
+        }
+      } else if (char == delimiter && !quoted) {
+        result.add(cell.toString().trim());
+        cell.clear();
+      } else {
+        cell.write(char);
+      }
+    }
+    result.add(cell.toString().trim());
+    return result;
+  }
+
+  String _normalize(String value) => value.trim().toLowerCase()
+      .replaceAll(RegExp(r'[\u064B-\u065F\u0670ـ]'), '')
+      .replaceAll('أ', 'ا').replaceAll('إ', 'ا').replaceAll('آ', 'ا')
+      .replaceAll('ى', 'ي').replaceAll(RegExp(r'\s+'), ' ');
+}
+).hasMatch(value)) continue;
+      textFields.add(value);
+    }
+    final name = textFields.isNotEmpty ? textFields.first : '';
+    final address = textFields.length > 1 ? textFields[1] : '';
+    final category = textFields.length > 2 ? textFields[2] : '';
+    return [name, phone, address, category];
   }
 
   bool _isHeaderOrNoise(String line) {
