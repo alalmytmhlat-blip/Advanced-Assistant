@@ -1,7 +1,6 @@
 // ignore_for_file: curly_braces_in_flow_control_structures
 import 'dart:io';
-import 'package:pdfrx/pdfrx.dart';
-import '../../../core/pdf/pdf_runtime.dart';
+import 'universal_file_extractor.dart';
 import '../../../core/auth/authorization_service.dart';
 import '../../customers/data/customer_model.dart';
 import '../../customers/data/customer_repository.dart';
@@ -47,30 +46,16 @@ class PdfImportResult {
 class PdfImportService {
   PdfImportService(this.authorization);
   final AuthorizationService authorization;
+  final UniversalFileExtractor _extractor = UniversalFileExtractor();
+
   Future<PdfImportPreview> prepare(File file, PdfImportKind kind) async {
-    await PdfRuntime.initialize();
-    final document = await PdfDocument.openFile(file.path);
-    try {
-      if (document.pages.isEmpty || document.pages.length > 300) {
-        throw const FormatException('عدد صفحات PDF غير صالح أو يتجاوز الحد المسموح (300 صفحة)');
-      }
-      final text = StringBuffer();
-      for (final page in document.pages) {
-        final raw = await page.loadText();
-        if (raw != null && raw.fullText.isNotEmpty) {
-          text.writeln(raw.fullText);
-        }
-      }
-      final extracted = text.toString();
-      if (extracted.trim().isEmpty) {
-        throw const FormatException('لم أجد نصًا قابلًا للاستخراج. قد يكون الملف صورة ممسوحة؛ OCR غير مفعل في هذه المرحلة.');
-      }
-      return await (kind == PdfImportKind.customers
-          ? _prepareCustomers(extracted, document.pages.length)
-          : _prepareInventory(extracted, document.pages.length));
-    } finally {
-      await document.dispose();
+    final extracted = await _extractor.extract(file);
+    if (extracted.text.trim().isEmpty) {
+      throw FormatException('لم يتم استخراج بيانات من ملف ' + extracted.format + '. قد يكون PDF مصورًا ويحتاج OCR.');
     }
+    return kind == PdfImportKind.customers
+        ? _prepareCustomers(extracted.text, extracted.pageCount)
+        : _prepareInventory(extracted.text, extracted.pageCount);
   }
 
   Future<PdfImportPreview> _prepareCustomers(String text, int pages) async {
@@ -168,6 +153,8 @@ class PdfImportService {
         columns = line.split('\t');
       } else if (line.contains(';')) {
         columns = line.split(';');
+      } else if (line.contains(',')) {
+        columns = line.split(',');
       } else {
         columns = line.split(RegExp(r'\s{2,}'));
       }

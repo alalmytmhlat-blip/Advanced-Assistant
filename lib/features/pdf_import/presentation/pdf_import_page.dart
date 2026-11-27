@@ -6,6 +6,7 @@ import 'package:sqflite/sqflite.dart';
 import '../../../core/auth/auth_service.dart';
 import '../../../core/auth/authorization_service.dart';
 import '../data/pdf_import_service.dart';
+import '../data/universal_file_extractor.dart';
 
 class PdfImportPage extends StatefulWidget {
   const PdfImportPage({super.key, required this.database, required this.authService});
@@ -28,7 +29,7 @@ class _PdfImportPageState extends State<PdfImportPage> {
   }
 
   Future<void> _pick() async {
-    final result = await FilePicker.platform.pickFiles(type: FileType.custom, allowedExtensions: ['pdf']);
+    final result = await FilePicker.platform.pickFiles(type: FileType.custom, allowedExtensions: UniversalFileExtractor.supportedExtensions.toList());
     if (result == null || result.files.isEmpty || !mounted) return;
     final path = result.files.single.path;
     if (path == null) {
@@ -86,9 +87,9 @@ class _PdfImportPageState extends State<PdfImportPage> {
   Widget build(BuildContext context) => Directionality(
     textDirection: TextDirection.rtl,
     child: Scaffold(
-      appBar: AppBar(title: const Text('استيراد بيانات PDF')),
+      appBar: AppBar(title: const Text('استيراد البيانات والملفات')),
       body: ListView(padding: const EdgeInsets.all(16), children: [
-        const Card(child: Padding(padding: EdgeInsets.all(14), child: Text('اختر نوع البيانات أولًا. يدعم الاستيراد ملفات PDF النصية ذات الأعمدة المفصولة بعلامة | أو فاصلة منقوطة أو تبويب أو مسافات متعددة. الملفات المصورة تحتاج OCR منفصلًا.'))),
+        const Card(child: Padding(padding: EdgeInsets.all(14), child: Text('يدعم المحرك PDF وWord وExcel وPowerPoint وCSV وTSV وTXT وJSON وJSONL وXML وHTML وMarkdown. ملفات PDF المصورة والصيغ المكتبية القديمة تحتاج دعمًا إضافيًا.'))),
         const SizedBox(height: 12),
         SegmentedButton<PdfImportKind>(
           segments: const [
