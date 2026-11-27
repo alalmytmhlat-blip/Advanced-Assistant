@@ -62,11 +62,18 @@ class PdfImportService {
     final existing = await CustomerRepository(authorization.database, authorization).search('', includeArchived: true);
     final names = existing.map((c) => _normalize(c.name)).toSet();
     final phones = existing.map((c) => _normalize(c.phone ?? '')).where((p) => p.isNotEmpty).toSet();
-    final parsed = _parseLines(text);
+    final seenNames = <String>{};
+    final seenPhones = <String>{};
+    final parsed = _parseLines(text, PdfImportKind.customers);
     final rows = parsed.rows.map((values) {
       final name = values[0];
       final phone = values.length > 1 ? values[1] : '';
-      final duplicate = names.contains(_normalize(name)) || (phone.isNotEmpty && phones.contains(_normalize(phone)));
+      final normalizedName = _normalize(name);
+      final normalizedPhone = _normalize(phone);
+      final duplicate = names.contains(normalizedName) ||
+          (phone.isNotEmpty && phones.contains(normalizedPhone)) ||
+          !seenNames.add(normalizedName) ||
+          (phone.isNotEmpty && !seenPhones.add(normalizedPhone));
       return PdfImportRow(
         values: [name, phone, values.length > 2 ? values[2] : '', values.length > 3 ? values[3] : ''],
         isDuplicate: duplicate,
@@ -80,11 +87,13 @@ class PdfImportService {
   Future<PdfImportPreview> _prepareInventory(String text, int pages) async {
     final existing = await InventoryRepository(authorization.database, authorization).list(includeArchived: true, limit: 1000);
     final keys = existing.map((i) => '${_normalize(i.name)}|${_normalize(i.code ?? '')}').toSet();
-    final parsed = _parseLines(text);
+    final seenKeys = <String>{};
+    final parsed = _parseLines(text, PdfImportKind.inventory);
     final rows = parsed.rows.map((values) {
       final name = values[0];
       final code = values.length > 1 ? values[1] : '';
-      final duplicate = keys.contains('${_normalize(name)}|${_normalize(code)}');
+      final key = '${_normalize(name)}|${_normalize(code)}';
+      final duplicate = keys.contains(key) || !seenKeys.add(key);
       return PdfImportRow(
         values: [
           name, code, values.length > 2 ? values[2] : '',
@@ -135,34 +144,101 @@ class PdfImportService {
     return PdfImportResult(imported: imported, failed: failed, duplicatesSkipped: duplicates);
   }
 
-  ({List<List<String>> rows, int ignored}) _parseLines(String text) {
+  ({List<List<String>> rows, int ignored}) _parseLines(
+    String text,
+    PdfImportKind kind,
+  ) {
     final rows = <List<String>>[];
     var ignored = 0;
-    for (final raw in text.split(RegExp(r'\r?\n'))) {
-      final line = raw.trim();
-      if (line.length < 2) { ignored++; continue; }
-      final lower = _normalize(line);
-      if (['الاسم', 'اسم العميل', 'العميل', 'الصنف', 'اسم الصنف', 'name', 'customer', 'item'].any(lower.startsWith)) {
+    for (final raw in text.split(RegExp(r'\\r?\\n'))) {
+      final line = raw.replaceAll(RegExp(r'[\\u200e\\u200f\\u202a-\\u202e]'), '').trim();
+      if (line.isEmpty || line.length < 2 || _isHeaderOrNoise(line)) {
         ignored++;
         continue;
       }
+
+      final delimiter = line.contains('\\t')
+          ? '\\t'
+          : line.contains('|')
+              ? '|'
+              : line.contains(';')
+                  ? ';'
+                  : line.contains(',')
+                      ? ','
+                      : null;
       List<String> columns;
-      if (line.contains('|')) {
-        columns = line.split('|');
-      } else if (line.contains('\t')) {
-        columns = line.split('\t');
-      } else if (line.contains(';')) {
-        columns = line.split(';');
-      } else if (line.contains(',')) {
-        columns = line.split(',');
+      if (delimiter != null) {
+        columns = _splitQuoted(line, delimiter);
       } else {
-        columns = line.split(RegExp(r'\s{2,}'));
+        columns = line.split(RegExp(r'\\s{2,}'));
+        if (columns.length == 1 && kind == PdfImportKind.customers) {
+          final phone = RegExp(r'(?:\\+?967[- ]?)?7\\d{8}|\\b\\d{7,15}\\b').firstMatch(line);
+          if (phone != null) {
+            final name = line.replaceFirst(phone.group(0)!, '').trim();
+            columns = [name, phone.group(0)!];
+          }
+        }
       }
-      columns = columns.map((v) => v.trim()).toList();
-      if (columns.length < 2 || columns.first.isEmpty || columns.first.length > 240) { ignored++; continue; }
+      columns = columns.map((v) => v.trim()).where((v) => v.isNotEmpty).toList();
+      if (columns.isEmpty || columns.first.length > 240) {
+        ignored++;
+        continue;
+      }
+
+      // A single non-numeric text line is a valid customer/item name in simple lists.
+      if (columns.length == 1) {
+        final value = columns.single;
+        final hasArabicOrLatin = RegExp(r'[\\u0600-\\u06FFa-zA-Z]').hasMatch(value);
+        final looksNumeric = RegExp(r'^[-+]?\\d+(?:[.,]\\d+)?$').hasMatch(value);
+        if (!hasArabicOrLatin || looksNumeric) {
+          ignored++;
+          continue;
+        }
+      }
+
+      // Keep the source order; the preview lets the operator inspect every imported value.
       rows.add(columns);
     }
     return (rows: rows, ignored: ignored);
+  }
+
+  bool _isHeaderOrNoise(String line) {
+    final value = _normalize(line);
+    if (RegExp(r'^\\d{1,4}$').hasMatch(value)) return true;
+    const headers = [
+      'الاسم', 'اسم العميل', 'اسم الزبون', 'العميل', 'العملاء',
+      'الزبون', 'الزبائن', 'رقم الهاتف', 'الهاتف', 'الجوال',
+      'اسم الصنف', 'الصنف', 'الاصناف', 'الكمية', 'الرصيد',
+      'name', 'customer', 'customers', 'phone', 'mobile', 'item',
+      'items', 'quantity', 'balance'
+    ];
+    if (headers.any((h) => value == _normalize(h))) return true;
+    if (value.startsWith('عام #العملاء') || value.startsWith('عام العملاء')) return true;
+    return false;
+  }
+
+  List<String> _splitQuoted(String line, String delimiter) {
+    final result = <String>[];
+    final cell = StringBuffer();
+    var quoted = false;
+    for (var i = 0; i < line.length; i++) {
+      final char = line[i];
+      if (char == '"') {
+        if (quoted && i + 1 < line.length && line[i + 1] == '"') {
+          cell.write('"');
+          i++;
+        } else {
+          quoted = !quoted;
+        }
+      } else if (char == delimiter && !quoted) {
+        result.add(cell.toString().trim());
+        cell.clear();
+      } else {
+        cell.write(char);
+      }
+    }
+    result.add(cell.toString().trim());
+    return result;
   }
 
   String _normalize(String value) => value.trim().toLowerCase()

@@ -89,7 +89,7 @@ class _PdfImportPageState extends State<PdfImportPage> {
     child: Scaffold(
       appBar: AppBar(title: const Text('استيراد البيانات والملفات')),
       body: ListView(padding: const EdgeInsets.all(16), children: [
-        const Card(child: Padding(padding: EdgeInsets.all(14), child: Text('يدعم المحرك PDF وWord وExcel وPowerPoint وCSV وTSV وTXT وJSON وJSONL وXML وHTML وMarkdown. ملفات PDF المصورة والصيغ المكتبية القديمة تحتاج دعمًا إضافيًا.'))),
+        const Card(child: Padding(padding: EdgeInsets.all(14), child: Text('يدعم PDF النصي وWord وExcel وPowerPoint وCSV وTSV وTXT وJSON وJSONL وXML وHTML وMarkdown. ملفات PDF المصورة وملفات DOC/XLS/PPT القديمة تحتاج OCR أو تحويلًا قبل الاستيراد.'))),
         const SizedBox(height: 12),
         SegmentedButton<PdfImportKind>(
           segments: const [
@@ -100,7 +100,7 @@ class _PdfImportPageState extends State<PdfImportPage> {
           onSelectionChanged: (v) => setState(() { _kind = v.first; _preview = null; _fileName = null; _message = null; }),
         ),
         const SizedBox(height: 12),
-        FilledButton.icon(onPressed: _working ? null : _pick, icon: const Icon(Icons.picture_as_pdf), label: const Text('اختيار ملف PDF')),
+        FilledButton.icon(onPressed: _working ? null : _pick, icon: const Icon(Icons.file_open), label: const Text('اختيار أي ملف مدعوم')),
         if (_fileName != null) Padding(padding: const EdgeInsets.only(top: 8), child: Text('الملف: $_fileName')),
         if (_working) const Padding(padding: EdgeInsets.all(20), child: Center(child: CircularProgressIndicator())),
         if (_message != null) Card(child: Padding(padding: const EdgeInsets.all(14), child: Text(_message!))),
