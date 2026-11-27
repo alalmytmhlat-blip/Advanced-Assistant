@@ -1,4 +1,4 @@
-// ignore_for_file: curly_braces_in_flow_control_structures
+// ignore_for_file: curly_braces_in_flow_control_structures, prefer_interpolation_to_compose_strings
 import 'dart:io';
 import 'universal_file_extractor.dart';
 import '../../../core/auth/authorization_service.dart';
